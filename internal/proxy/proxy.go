@@ -1,4 +1,4 @@
-// Package proxy provides reverse proxy and load balancing functionality.
+
 package proxy
 
 import (
@@ -11,24 +11,24 @@ import (
 	"sync/atomic"
 )
 
-// Backend represents a target backend server.
+
 type Backend struct {
 	URL    string
 	Weight int
 	Alive  atomic.Bool
 }
 
-// LoadBalancer distributes requests across backends.
+
 type LoadBalancer struct {
 	backends []Backend
 	strategy Strategy
 	current  atomic.Uint32
 }
 
-// Strategy defines the load balancing algorithm.
+
 type Strategy func([]Backend, *atomic.Uint32) *Backend
 
-// RoundRobinStrategy implements round-robin load balancing.
+
 func RoundRobinStrategy(backends []Backend, current *atomic.Uint32) *Backend {
 	n := uint32(len(backends))
 	if n == 0 {
@@ -44,7 +44,7 @@ func RoundRobinStrategy(backends []Backend, current *atomic.Uint32) *Backend {
 	return nil
 }
 
-// NewLoadBalancer creates a new load balancer with the specified strategy.
+
 func NewLoadBalancer(backends []Backend, strategy Strategy) *LoadBalancer {
 	for i := range backends {
 		backends[i].Alive.Store(true)
@@ -55,17 +55,17 @@ func NewLoadBalancer(backends []Backend, strategy Strategy) *LoadBalancer {
 	}
 }
 
-// SelectBackend returns the next available backend according to the strategy.
+
 func (lb *LoadBalancer) SelectBackend() *Backend {
 	return lb.strategy(lb.backends, &lb.current)
 }
 
-// ReverseProxy wraps httputil.ReverseProxy with additional features.
+
 type ReverseProxy struct {
 	proxy *httputil.ReverseProxy
 }
 
-// NewReverseProxy creates a new reverse proxy for the given target.
+
 func NewReverseProxy(targetURL string) (*ReverseProxy, error) {
 	target, err := url.Parse(targetURL)
 	if err != nil {
@@ -80,12 +80,12 @@ func NewReverseProxy(targetURL string) (*ReverseProxy, error) {
 	return &ReverseProxy{proxy: proxy}, nil
 }
 
-// ServeHTTP implements http.Handler.
+
 func (rp *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	rp.proxy.ServeHTTP(w, r)
 }
 
-// CopyResponse copies the backend response to the client.
+
 func CopyResponse(w http.ResponseWriter, resp *http.Response) {
 	defer resp.Body.Close()
 

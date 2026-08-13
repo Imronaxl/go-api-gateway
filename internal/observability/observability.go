@@ -1,4 +1,4 @@
-// Package observability provides OpenTelemetry and Prometheus integration.
+
 package observability
 
 import (
@@ -14,7 +14,7 @@ sdktrace "go.opentelemetry.io/otel/sdk/trace"
 semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 )
 
-// InitOTEL initializes OpenTelemetry tracing.
+
 func InitOTEL(ctx context.Context, serviceName string) (func(context.Context) error, error) {
 res, err := resource.New(ctx,
 resource.WithAttributes(semconv.ServiceName(serviceName)),
@@ -40,7 +40,7 @@ otel.SetTracerProvider(tp)
 return tp.Shutdown, nil
 }
 
-// StartMetricsServer starts the Prometheus metrics server.
+
 func StartMetricsServer(addr string) *http.Server {
 mux := http.NewServeMux()
 mux.Handle("/metrics", prom.Handler())

@@ -1,4 +1,4 @@
-// Package circuitbreaker provides circuit breaker pattern implementation.
+
 package circuitbreaker
 
 import (
@@ -6,7 +6,7 @@ import (
 "time"
 )
 
-// State represents the circuit breaker state.
+
 type State int
 
 const (
@@ -28,14 +28,14 @@ return "unknown"
 }
 }
 
-// Config holds circuit breaker configuration.
+
 type Config struct {
-MaxFailures   int           // failures before opening
-Timeout       time.Duration // time before attempting recovery
-HalfOpenLimit int           // max requests in half-open state
+MaxFailures   int           
+Timeout       time.Duration 
+HalfOpenLimit int           
 }
 
-// CircuitBreaker implements the circuit breaker pattern.
+
 type CircuitBreaker struct {
 mu            sync.RWMutex
 state         State
@@ -46,7 +46,7 @@ halfOpenCount int
 cfg           Config
 }
 
-// New creates a new circuit breaker.
+
 func New(cfg Config) *CircuitBreaker {
 if cfg.HalfOpenLimit == 0 {
 cfg.HalfOpenLimit = 1
@@ -57,7 +57,7 @@ cfg:   cfg,
 }
 }
 
-// State returns the current circuit breaker state.
+
 func (cb *CircuitBreaker) State() State {
 cb.mu.RLock()
 defer cb.mu.RUnlock()
@@ -70,7 +70,7 @@ return StateHalfOpen
 return cb.state
 }
 
-// RecordSuccess records a successful request.
+
 func (cb *CircuitBreaker) RecordSuccess() {
 cb.mu.Lock()
 defer cb.mu.Unlock()
@@ -88,7 +88,7 @@ cb.failures = 0
 }
 }
 
-// RecordFailure records a failed request.
+
 func (cb *CircuitBreaker) RecordFailure() {
 cb.mu.Lock()
 defer cb.mu.Unlock()
@@ -107,7 +107,7 @@ cb.successes = 0
 }
 }
 
-// Allow checks if a request should be allowed.
+
 func (cb *CircuitBreaker) Allow() bool {
 cb.mu.Lock()
 defer cb.mu.Unlock()

@@ -1,6 +1,6 @@
-// Package main provides the Relay API gateway entry point.
-// Relay is a lightweight reverse proxy with load balancing, rate limiting,
-// circuit breaker, and observability features.
+
+
+
 package main
 
 import (
@@ -58,8 +58,8 @@ func run() error {
 	}()
 
 	backends := []proxy.Backend{
-		{URL: mustParseURL("http://localhost:8081"), Weight: 1},
-		{URL: mustParseURL("http://localhost:8082"), Weight: 1},
+		{URL: mustParseURL("http:
+		{URL: mustParseURL("http:
 	}
 
 	lb := proxy.NewLoadBalancer(backends, proxy.RoundRobinStrategy)

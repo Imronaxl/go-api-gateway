@@ -1,4 +1,4 @@
-// Package tracing provides OpenTelemetry tracing middleware.
+
 package tracing
 
 import (
@@ -9,7 +9,7 @@ import (
 "go.opentelemetry.io/otel/trace"
 )
 
-// Middleware creates OpenTelemetry tracing middleware.
+
 func Middleware() func(http.Handler) http.Handler {
 tracer := otel.Tracer("relay")
 propagator := otel.GetTextMapPropagator()
