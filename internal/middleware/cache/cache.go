@@ -1,4 +1,4 @@
-// Package cache provides a generic thread-safe TTL cache.
+
 package cache
 
 import (
@@ -6,7 +6,7 @@ import (
 "time"
 )
 
-// Cache is a generic thread-safe TTL cache.
+
 type Cache[K comparable, V any] struct {
 mu      sync.RWMutex
 items   map[K]cacheItem[V]
@@ -18,7 +18,7 @@ value     V
 expiresAt time.Time
 }
 
-// New creates a new cache with the specified default TTL.
+
 func New[K comparable, V any](defaultTTL time.Duration) *Cache[K, V] {
 c := &Cache[K, V]{
 items:      make(map[K]cacheItem[V]),
@@ -28,12 +28,12 @@ go c.cleanup()
 return c
 }
 
-// Set stores a value in the cache with the default TTL.
+
 func (c *Cache[K, V]) Set(key K, value V) {
 c.SetWithTTL(key, value, c.defaultTTL)
 }
 
-// SetWithTTL stores a value in the cache with a custom TTL.
+
 func (c *Cache[K, V]) SetWithTTL(key K, value V, ttl time.Duration) {
 c.mu.Lock()
 defer c.mu.Unlock()
@@ -44,7 +44,7 @@ expiresAt: time.Now().Add(ttl),
 }
 }
 
-// Get retrieves a value from the cache.
+
 func (c *Cache[K, V]) Get(key K) (V, bool) {
 c.mu.RLock()
 defer c.mu.RUnlock()
@@ -58,14 +58,14 @@ return zero, false
 return item.value, true
 }
 
-// Delete removes a key from the cache.
+
 func (c *Cache[K, V]) Delete(key K) {
 c.mu.Lock()
 defer c.mu.Unlock()
 delete(c.items, key)
 }
 
-// cleanup periodically removes expired items.
+
 func (c *Cache[K, V]) cleanup() {
 ticker := time.NewTicker(time.Minute)
 defer ticker.Stop()

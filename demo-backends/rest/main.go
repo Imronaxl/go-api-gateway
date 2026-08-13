@@ -1,4 +1,4 @@
-// Package main provides a simple REST demo backend.
+
 package main
 
 import (

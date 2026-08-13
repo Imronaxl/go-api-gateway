@@ -1,4 +1,4 @@
-// Package auth provides JWT authentication middleware.
+
 package auth
 
 import (
@@ -7,12 +7,12 @@ import (
 "strings"
 )
 
-// Config holds JWT authentication configuration.
+
 type Config struct {
 SecretKey string
 }
 
-// Middleware creates JWT authentication middleware.
+
 func NewJWTAuth(cfg Config) func(http.Handler) http.Handler {
 return func(next http.Handler) http.Handler {
 return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +34,7 @@ http.Error(w, "empty token", http.StatusUnauthorized)
 return
 }
 
-// In production, validate JWT signature here
+
 ctx := context.WithValue(r.Context(), "user_id", "authenticated-user")
 next.ServeHTTP(w, r.WithContext(ctx))
 })
