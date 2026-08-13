@@ -1,8 +1,6 @@
-
 package proxy
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,13 +9,11 @@ import (
 	"sync/atomic"
 )
 
-
 type Backend struct {
 	URL    string
 	Weight int
 	Alive  atomic.Bool
 }
-
 
 type LoadBalancer struct {
 	backends []Backend
@@ -25,9 +21,7 @@ type LoadBalancer struct {
 	current  atomic.Uint32
 }
 
-
 type Strategy func([]Backend, *atomic.Uint32) *Backend
-
 
 func RoundRobinStrategy(backends []Backend, current *atomic.Uint32) *Backend {
 	n := uint32(len(backends))
@@ -44,7 +38,6 @@ func RoundRobinStrategy(backends []Backend, current *atomic.Uint32) *Backend {
 	return nil
 }
 
-
 func NewLoadBalancer(backends []Backend, strategy Strategy) *LoadBalancer {
 	for i := range backends {
 		backends[i].Alive.Store(true)
@@ -55,16 +48,13 @@ func NewLoadBalancer(backends []Backend, strategy Strategy) *LoadBalancer {
 	}
 }
 
-
 func (lb *LoadBalancer) SelectBackend() *Backend {
 	return lb.strategy(lb.backends, &lb.current)
 }
 
-
 type ReverseProxy struct {
 	proxy *httputil.ReverseProxy
 }
-
 
 func NewReverseProxy(targetURL string) (*ReverseProxy, error) {
 	target, err := url.Parse(targetURL)
@@ -80,11 +70,9 @@ func NewReverseProxy(targetURL string) (*ReverseProxy, error) {
 	return &ReverseProxy{proxy: proxy}, nil
 }
 
-
 func (rp *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	rp.proxy.ServeHTTP(w, r)
 }
-
 
 func CopyResponse(w http.ResponseWriter, resp *http.Response) {
 	defer resp.Body.Close()
