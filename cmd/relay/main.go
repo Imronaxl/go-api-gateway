@@ -1,6 +1,3 @@
-
-
-
 package main
 
 import (
@@ -58,8 +55,8 @@ func run() error {
 	}()
 
 	backends := []proxy.Backend{
-		{URL: mustParseURL("http:
-		{URL: mustParseURL("http:
+		{URL: mustParseURL("http://localhost:8081")},
+		{URL: mustParseURL("http://localhost:8083")},
 	}
 
 	lb := proxy.NewLoadBalancer(backends, proxy.RoundRobinStrategy)
@@ -79,6 +76,10 @@ func run() error {
 		SecretKey: getEnv("RELAY_AUTH_SECRET", "secret-key"),
 	})
 
+	httpClient := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		backend := lb.SelectBackend()
 		if backend == nil {
@@ -91,14 +92,36 @@ func run() error {
 			return
 		}
 
-		proxyReq := proxy.NewRequest(backend.URL, r)
-		resp, err := proxyReq.Do(r.Context())
+		// Create proxy request to backend
+		proxyURL := backend.URL + r.RequestURI
+		proxyReq, err := http.NewRequestWithContext(r.Context(), r.Method, proxyURL, nil)
 		if err != nil {
 			cb.RecordFailure()
 			http.Error(w, "backend error", http.StatusBadGateway)
 			return
 		}
-		defer resp.Body.Close()
+
+		// Copy body if present
+		if r.Body != nil {
+			proxyReq.Body = r.Body
+			proxyReq.ContentLength = r.ContentLength
+		}
+
+		// Copy headers from original request (excluding Host and Connection)
+		for k, vv := range r.Header {
+			if k != "Host" && k != "Connection" {
+				for _, v := range vv {
+					proxyReq.Header.Add(k, v)
+				}
+			}
+		}
+
+		resp, err := httpClient.Do(proxyReq)
+		if err != nil {
+			cb.RecordFailure()
+			http.Error(w, "backend error", http.StatusBadGateway)
+			return
+		}
 
 		cb.RecordSuccess()
 		proxy.CopyResponse(w, resp)

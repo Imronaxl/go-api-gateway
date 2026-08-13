@@ -1,37 +1,32 @@
-
 package grpcproxy
 
 import (
-"context"
+	"context"
 
-"google.golang.org/grpc"
-"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
-
 type Proxy struct {
-conn *grpc.ClientConn
+	conn *grpc.ClientConn
 }
-
 
 func NewProxy(target string) (*Proxy, error) {
-conn, err := grpc.NewClient(target, grpc.WithInsecure())
-if err != nil {
-return nil, err
+	conn, err := grpc.Dial(target, grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	return &Proxy{conn: conn}, nil
 }
-return &Proxy{conn: conn}, nil
-}
-
 
 func (p *Proxy) Close() error {
-return p.conn.Close()
+	return p.conn.Close()
 }
-
 
 func (p *Proxy) Unary(ctx context.Context, method string, req, resp interface{}, opts ...grpc.CallOption) error {
-md, ok := metadata.FromIncomingContext(ctx)
-if ok {
-ctx = metadata.NewOutgoingContext(ctx, md)
-}
-return p.conn.Invoke(ctx, method, req, resp, opts...)
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		ctx = metadata.NewOutgoingContext(ctx, md)
+	}
+	return p.conn.Invoke(ctx, method, req, resp, opts...)
 }
