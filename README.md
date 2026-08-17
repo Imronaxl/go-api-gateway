@@ -39,7 +39,3 @@ relay/
 ├── deploy/                 # docker-compose, Dockerfile, k8s
 └── docs/                   # DESIGN.md, profiling.md
 ```
-
-## Лицензия
-
-MIT
