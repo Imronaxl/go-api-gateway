@@ -1,83 +1,75 @@
-
 package cache
 
 import (
-"sync"
-"time"
+	"sync"
+	"time"
 )
 
-
 type Cache[K comparable, V any] struct {
-mu      sync.RWMutex
-items   map[K]cacheItem[V]
-defaultTTL time.Duration
+	mu         sync.RWMutex
+	items      map[K]cacheItem[V]
+	defaultTTL time.Duration
 }
 
 type cacheItem[V any] struct {
-value     V
-expiresAt time.Time
+	value     V
+	expiresAt time.Time
 }
-
 
 func New[K comparable, V any](defaultTTL time.Duration) *Cache[K, V] {
-c := &Cache[K, V]{
-items:      make(map[K]cacheItem[V]),
-defaultTTL: defaultTTL,
+	c := &Cache[K, V]{
+		items:      make(map[K]cacheItem[V]),
+		defaultTTL: defaultTTL,
+	}
+	go c.cleanup()
+	return c
 }
-go c.cleanup()
-return c
-}
-
 
 func (c *Cache[K, V]) Set(key K, value V) {
-c.SetWithTTL(key, value, c.defaultTTL)
+	c.SetWithTTL(key, value, c.defaultTTL)
 }
-
 
 func (c *Cache[K, V]) SetWithTTL(key K, value V, ttl time.Duration) {
-c.mu.Lock()
-defer c.mu.Unlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
-c.items[key] = cacheItem[V]{
-value:     value,
-expiresAt: time.Now().Add(ttl),
+	c.items[key] = cacheItem[V]{
+		value:     value,
+		expiresAt: time.Now().Add(ttl),
+	}
 }
-}
-
 
 func (c *Cache[K, V]) Get(key K) (V, bool) {
-c.mu.RLock()
-defer c.mu.RUnlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
-item, ok := c.items[key]
-if !ok || time.Now().After(item.expiresAt) {
-var zero V
-return zero, false
+	item, ok := c.items[key]
+	if !ok || time.Now().After(item.expiresAt) {
+		var zero V
+		return zero, false
+	}
+
+	return item.value, true
 }
-
-return item.value, true
-}
-
 
 func (c *Cache[K, V]) Delete(key K) {
-c.mu.Lock()
-defer c.mu.Unlock()
-delete(c.items, key)
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	delete(c.items, key)
 }
-
 
 func (c *Cache[K, V]) cleanup() {
-ticker := time.NewTicker(time.Minute)
-defer ticker.Stop()
+	ticker := time.NewTicker(time.Minute)
+	defer ticker.Stop()
 
-for range ticker.C {
-c.mu.Lock()
-now := time.Now()
-for k, item := range c.items {
-if now.After(item.expiresAt) {
-delete(c.items, k)
-}
-}
-c.mu.Unlock()
-}
+	for range ticker.C {
+		c.mu.Lock()
+		now := time.Now()
+		for k, item := range c.items {
+			if now.After(item.expiresAt) {
+				delete(c.items, k)
+			}
+		}
+		c.mu.Unlock()
+	}
 }
