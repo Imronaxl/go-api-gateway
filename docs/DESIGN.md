@@ -4,16 +4,12 @@
 
 Используем паттерн `func(http.Handler) http.Handler`. Каждый middleware независим и тестируем в изоляции. Сборка цепочки происходит в одном месте (`cmd/relay/main.go`).
 
-**Почему не фреймворк:** Показывает понимание net/http на глубоком уровне, а не просто использование абстракций.
-
 ## 2. Circuit breaker — явная state machine
 
 Реализация с нуля (не сторонняя библиотека) для демонстрации понимания паттерна:
 - Closed → Open: после N ошибок
 - Open → HalfOpen: по таймауту
 - HalfOpen → Closed: после M успешных запросов
-
-**Почему sync.RWMutex:** Атомарные операции не подходят для сложной логики переходов состояний. RWMutex минимизирует contention на чтение (State проверяется чаще чем меняется).
 
 ## 3. Rate limiter — golang.org/x/time/rate
 
@@ -26,8 +22,6 @@
 ## 5. Kafka — асинхронно, never block hot path
 
 Bounded buffer (channel с ограниченной ёмкостью). При переполнении — drop с метрикой counter.
-
-**Почему не Outbox pattern:** Здесь цель — не согласованность с БД, а отсутствие back-pressure на основной путь.
 
 ## 6. Generic Cache[K, V]
 
