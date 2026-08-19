@@ -158,6 +158,5 @@ curl http://localhost:9090/metrics
 │   └── proxy/
 ├── go.mod
 ├── go.sum
-├── README.md
-└── LICENSE
+└── README.md
 ```
