@@ -134,9 +134,6 @@ curl -i http://localhost:8080/health
 cd /home/imeon/prototype5
 go test ./...
 
-# Форматирование кода
-go fmt ./...
-
 # Просмотр метрик
 curl http://localhost:9090/metrics
 ```
