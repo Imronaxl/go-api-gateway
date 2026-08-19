@@ -150,9 +150,6 @@ curl http://localhost:9090/metrics
 ├── deploy/
 │   ├── Dockerfile
 │   └── docker-compose.yml
-├── docs/
-│   ├── DESIGN.md
-│   └── profiling.md
 ├── internal/
 │   ├── audit/
 │   ├── grpcproxy/
