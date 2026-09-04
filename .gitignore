@@ -1,0 +1,57 @@
+# Binaries
+/relay
+/rest-backend
+/grpc-backend
+rest
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of go coverage
+*.out
+coverage.txt
+
+# Dependency directories
+vendor/
+
+# Go workspace
+go.work
+go.work.sum
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+
+# Logs
+*.log
+dev.log
+server.log
+
+# Web (Next.js)
+web/node_modules/
+web/.next/
+web/.vercel/
+web/out/
+web/build/
+web/.bun/
+web/bun.lockb
+web/.cache/
+web/coverage/
+web/*.tsbuildinfo
