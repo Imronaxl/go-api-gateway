@@ -1,39 +1,41 @@
 # Architecture Decision Records
 
-This directory contains ADRs for the Relay Control Plane frontend — short
-documents capturing *why* a particular architectural choice was made. The
-format is based on Michael Nygard's [original
-article](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions)
-and the popularised [ADR-tools
-layout](https://github.com/joelparkerhenderson/architecture-decision-record).
+В этом каталоге собраны ADR для фронтенда Relay Control Plane — короткие
+документы, фиксирующие *почему* принято то или иное архитектурное решение.
+Формат основан на [оригинальной статье Michael
+Nygard](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions)
+и популярной [раскладке
+ADR-tools](https://github.com/joelparkerhenderson/architecture-decision-record).
 
-## Why ADRs?
+## Зачем нужны ADR
 
-Code tells you *what* a system does. ADRs tell you *why* the team chose to do
-it that way, what alternatives were considered, and what trade-offs were
-accepted. They're especially useful for:
+Код показывает *что* делает система. ADR показывают *почему* команда решила
+делать именно так, какие альтернативы рассматривались и какие trade-offs
+были приняты. Особенно полезны для:
 
-- New team members getting up to speed quickly
-- Future-you, six months later, wondering "why did we use Zustand here?"
-- Performance reviews and architecture audits
+- Быстрого онбординга новых участников команды
+- Тебя самого через полгода, когда возникнет вопрос «почему тут Zustand, а
+  не Redux?»
+- Performance review и архитектурных аудитов
 
-## Index
+## Указатель
 
-| #    | Title                                       | Status   |
-| ---- | ------------------------------------------- | -------- |
-| 0001 | [Single-route SPA with internal view switch](0001-single-route-spa.md) | Accepted |
-| 0002 | [Zustand over Redux/Context for global state](0002-zustand-over-redux.md) | Accepted |
-| 0003 | [Built-in simulation engine for offline preview](0003-simulation-engine.md) | Accepted |
-| 0004 | [Dark theme as the default](0004-dark-theme-default.md) | Accepted |
-| 0005 | [TypeScript domain types mirror Go structs](0005-types-mirror-go-structs.md) | Accepted |
+| №    | Заголовок                                       | Статус   |
+| ---- | ----------------------------------------------- | -------- |
+| 0001 | [Одностраничный SPA с внутренним переключением views](0001-single-route-spa.md) | Принято |
+| 0002 | [Zustand вместо Redux/Context для глобального состояния](0002-zustand-over-redux.md) | Принято |
+| 0003 | [Встроенный движок симуляции для офлайн-превью](0003-simulation-engine.md) | Принято |
+| 0004 | [Тёмная тема как тема по умолчанию](0004-dark-theme-default.md) | Принято |
+| 0005 | [TypeScript-типы зеркалят Go-структуры](0005-types-mirror-go-structs.md) | Принято |
 
-## Format
+## Формат
 
-Each ADR is a single Markdown file numbered `NNNN-short-title.md` containing:
+Каждый ADR — отдельный Markdown-файл с именем `NNNN-короткий-заголовок.md`,
+содержащий:
 
-- **Title** + 1-line summary
-- **Status** — Proposed / Accepted / Deprecated / Superseded
-- **Context** — the problem and constraints
-- **Decision** — what we chose
-- **Consequences** — what we gained and what we gave up
-- **Alternatives considered** — what else was on the table
+- **Заголовок** + однострочное summary
+- **Статус** — Proposed / Accepted / Deprecated / Superseded
+- **Контекст** — проблема и ограничения
+- **Решение** — что выбрали
+- **Последствия** — что приобрели и чем поступились
+- **Рассмотренные альтернативы** — что ещё было на столе

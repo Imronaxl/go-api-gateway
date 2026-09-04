@@ -1,66 +1,67 @@
-# ADR-0004: Dark theme as the default
+# ADR-0004: Тёмная тема как тема по умолчанию
 
-**Status:** Accepted
+**Статус:** Принято
 
 ## Summary
 
-The dashboard uses a dark, terminal-inspired theme by default. The `<html>`
-element has the `dark` class hard-coded in `layout.tsx`, and no light-mode
-toggle is exposed in the UI.
+Дашборд использует тёмную, terminal-inspired тему по умолчанию. Элемент
+`<html>` жёстко имеет класс `dark` в `layout.tsx`, переключателя на светлую
+тему в интерфейсе нет.
 
-## Context
+## Контекст
 
-The dashboard is an SRE / platform engineering tool — the kind of thing
-someone stares at on a wall-mounted display in an ops room, or keeps open
-in a side monitor all day. The audience is technical and expects
-observability tooling to look like Grafana, Datadog, or the Prometheus UI —
-all dark by default.
+Дашборд — SRE / platform engineering инструмент. Такой, что кто-то смотрит
+на него на настенном дисплее в ops-комнате или держит открытым в боковом
+мониторе весь день. Аудитория техническая и ожидает, что observability-тул
+выглядит как Grafana, Datadog или Prometheus UI — все по умолчанию тёмные.
 
-## Decision
+## Решение
 
-Use a dark OKLCH palette built on Tailwind CSS 4 custom properties, with:
+Используем тёмную OKLCH-палитру, построенную на custom properties Tailwind
+CSS 4:
 
-- **Background**: deep slate (`oklch(0.16 0.012 240)`) with a subtle 24px
-  dot grid for depth
-- **Primary accent**: cyan (`oklch(0.78 0.15 195)`) — evokes "active
-  request" without the baggage of the default Tailwind blue
-- **Status colors**: emerald (healthy), amber (degraded), rose (errors) —
-  the standard SRE convention
-- **Typography**: Geist Sans for body, Geist Mono for everything numeric or
-  code-like, with `tabular-nums` enabled globally so columns align
+- **Фон**: глубокий сланцевый (`oklch(0.16 0.012 240)`) с лёгкой точечной
+  сеткой 24px для глубины
+- **Основной акцент**: циан (`oklch(0.78 0.15 195)`) — вызывает ассоциацию
+  «активный запрос» без багажа дефолтного Tailwind-синего
+- **Цвета статусов**: изумрудный (здоровое), янтарный (деградация), розовый
+  (ошибки) — стандартная SRE-конвенция
+- **Типографика**: Geist Sans для текста, Geist Mono для всего числового и
+  код-подобного, с глобальным `tabular-nums`, чтобы колонки выравнивались
 
-Light mode tokens are defined in `globals.css` for completeness but the
-`<html>` element is hard-coded to `dark` so the theme never flips.
+Light-токены определены в `globals.css` для полноты, но элемент `<html>`
+жёстко `dark`, поэтому тема никогда не переключается.
 
-## Consequences
+## Последствия
 
-**Positive**
+**Положительные**
 
-- Matches user expectations for the domain
-- Lower eye strain for long sessions
-- Glow effects (used on status dots, active nodes) only work on dark
-  backgrounds — they're a key part of the visual language
-- Charts look better — the cyan/emerald/amber palette pops against slate
+- Соответствует ожиданиям аудитории для данного домена
+- Меньше усталость глаз при долгих сессиях
+- Glow-эффекты (используются на status dots, активных узлах) работают только
+  на тёмном фоне — это ключевой элемент визуального языка
+- Графики выглядят лучше — палитра циан/изумруд/янтарь сочно смотрится на
+  сланцевом
 
-**Negative**
+**Отрицательные**
 
-- Accessibility: dark themes can reduce contrast for users with certain
-  visual impairments. Mitigated by ensuring all text meets WCAG AA
-  contrast against its background.
-- Printing is broken (but nobody prints a live dashboard)
-- Can't be overridden by the user (acceptable for a portfolio piece; in a
-  real product we'd add a toggle)
+- Accessibility: тёмные темы могут снижать контраст для пользователей с
+  определёнными нарушениями зрения. Смягчается обеспечением WCAG AA
+  контраста всего текста относительно фона.
+- Печать сломана (но никто не печатает live-дашборд)
+- Не переопределяется пользователем (допустимо для портфолио; в реальном
+  продукте добавили бы переключатель)
 
-## Alternatives considered
+## Рассмотренные альтернативы
 
-- **Light theme by default** — feels wrong for an SRE tool. Most
-  comparable products default to dark.
-- **Follow system preference via `next-themes`** — adds a flash of
-  incorrect theme on first paint, and the dot-grid background doesn't
-  translate well to light mode.
-- **Add a manual toggle** — scope creep for a portfolio piece. The dark
-  theme is the brand.
+- **Светлая тема по умолчанию** — ощущается неправильно для SRE-инструмента.
+  Большинство сопоставимых продуктов по умолчанию тёмные.
+- **Следовать системной настройке через `next-themes`** — добавляет flash
+  неправильной темы при первом paint, а точечный фон не переводится на
+  светлую тему.
+- **Ручной переключатель** — scope creep для портфолио. Тёмная тема — это
+  бренд.
 
-The dark theme isn't just an aesthetic choice — it's a domain signal. When
-a reviewer opens the dashboard and sees a terminal-inspired dark UI, they
-immediately know "this person has used real SRE tools".
+Тёмная тема — не только эстетический выбор, но и сигнал домена. Когда
+ревьюер открывает дашборд и видит terminal-inspired тёмный UI, он сразу
+понимает: «этот человек пользовался настоящими SRE-инструментами».

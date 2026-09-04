@@ -52,10 +52,10 @@ export function DashboardShell() {
         <div className="pointer-events-auto flex items-center gap-2 rounded-md border border-border/40 bg-card/80 px-2.5 py-1 font-mono text-[10px] text-muted-foreground/70 shadow-lg backdrop-blur-sm">
           <kbd className="rounded border border-border/60 bg-muted/60 px-1 py-0.5 text-[9px]">⌘</kbd>
           <kbd className="rounded border border-border/60 bg-muted/60 px-1 py-0.5 text-[9px]">K</kbd>
-          <span>commands</span>
+          <span>команды</span>
           <span className="mx-1 text-muted-foreground/30">·</span>
           <kbd className="rounded border border-border/60 bg-muted/60 px-1 py-0.5 text-[9px]">?</kbd>
-          <span>help</span>
+          <span>помощь</span>
         </div>
       </div>
     </ConceptExplainerProvider>

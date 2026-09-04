@@ -1,69 +1,68 @@
-# ADR-0005: TypeScript domain types mirror Go structs
+# ADR-0005: TypeScript-типы зеркалят Go-структуры
 
-**Status:** Accepted
+**Статус:** Принято
 
 ## Summary
 
-The TypeScript types in `src/lib/gateway/types.ts` are deliberately shaped
-to match the Go structs in `internal/middleware/*` and `cmd/relay/main.go`.
-Default values in `DEFAULT_GATEWAY_CONFIG` match the constants baked into
-the Go code.
+TypeScript-типы в `src/lib/gateway/types.ts` намеренно повторяют форму
+Go-структур из `internal/middleware/*` и `cmd/relay/main.go`. Дефолтные
+значения в `DEFAULT_GATEWAY_CONFIG` совпадают с константами, захардкоженными
+в Go-коде.
 
-## Context
+## Контекст
 
-The dashboard speaks to a Go backend. There's no OpenAPI spec or codegen —
-the contract between frontend and backend is implicit, defined by reading
-the Go source. Without discipline, the two sides drift: someone changes
-`MaxFailures` from 5 to 10 in `main.go` and the dashboard still shows 5.
+Дашборд общается с Go-бэкендом. Нет ни OpenAPI-спецификации, ни codegen —
+контракт между фронтендом и бэкендом неявный, определяется чтением Go-исходника.
+Без дисциплины стороны расходятся: кто-то меняет `MaxFailures` с 5 на 10 в
+`main.go`, а дашборд всё ещё показывает 5.
 
-## Decision
+## Решение
 
-Manually mirror the Go structs as TypeScript interfaces, with comments
-pointing to the source file. Pin the default values with unit tests.
+Вручную зеркалим Go-структуры как TypeScript-интерфейсы, с комментариями,
+указывающими на исходный файл. Дефолтные значения фиксируем unit-тестом.
 
-Examples:
+Примеры:
 
-| TypeScript type            | Go source                              |
-| -------------------------- | -------------------------------------- |
-| `RateLimitConfig`          | `internal/middleware/ratelimit/Config` |
-| `CircuitBreakerConfig`     | `internal/middleware/circuitbreaker/Config` |
-| `Backend`                  | `internal/proxy/Backend`               |
-| `MIDDLEWARE_CHAIN` order   | wrap order in `cmd/relay/main.go`      |
+| TypeScript-тип              | Go-источник                            |
+| --------------------------- | -------------------------------------- |
+| `RateLimitConfig`           | `internal/middleware/ratelimit/Config` |
+| `CircuitBreakerConfig`      | `internal/middleware/circuitbreaker/Config` |
+| `Backend`                   | `internal/proxy/Backend`               |
+| порядок `MIDDLEWARE_CHAIN`  | порядок обёрток в `cmd/relay/main.go`  |
 
-The test in `__tests__/types.test.ts` asserts that
-`DEFAULT_GATEWAY_CONFIG.circuitBreaker.maxFailures === 5` and that
-`MIDDLEWARE_CHAIN` is in the exact order `logging, tracing, auth,
-ratelimit, loadbalancer, circuitbreaker` — matching the Go wrap order. If
-either side changes without the other following, the test fails.
+Тест в `__tests__/types.test.ts` проверяет, что
+`DEFAULT_GATEWAY_CONFIG.circuitBreaker.maxFailures === 5` и что
+`MIDDLEWARE_CHAIN` идёт ровно в порядке `logging, tracing, auth, ratelimit,
+loadbalancer, circuitbreaker` — как порядок обёрток в Go. Если любая из
+сторон поменяется без синхронизации с другой — тест упадёт.
 
-## Consequences
+## Последствия
 
-**Positive**
+**Положительные**
 
-- The contract between frontend and backend is explicit and testable
-- Reading the TypeScript types tells you the shape of the Go backend
-- New contributors can find the Go source for any frontend type via the
-  JSDoc comment
-- Drift is caught by CI, not by users
+- Контракт между фронтендом и бэкендом явный и тестируемый
+- Чтение TypeScript-типов подсказывает форму Go-бэкенда
+- Новые контрибьюторы находят Go-исходник по любому frontend-типу через
+  JSDoc-комментарий
+- Расхождения ловятся в CI, а не пользователями
 
-**Negative**
+**Отрицательные**
 
-- Manual sync — if a Go struct changes, the TypeScript type and its test
-  have to be updated by hand. With codegen (OpenAPI, protobuf) this would
-  be automatic.
-- The TypeScript types can't capture Go-specific semantics (e.g. atomic
-  operations, mutex protection) — those are documented in comments only.
+- Ручная синхронизация — если Go-структура поменяется, TypeScript-тип и его
+  тест нужно обновлять руками. С codegen (OpenAPI, protobuf) было бы
+  автоматом.
+- TypeScript-типы не могут захватить Go-специфичную семантику (атомарные
+  операции, мьютексы) — это только в комментариях.
 
-## Alternatives considered
+## Рассмотренные альтернативы
 
-- **OpenAPI spec + codegen** — the right answer for a production system
-  with many consumers. Overkill for a single-frontend portfolio piece,
-  and the Go backend doesn't expose a spec.
-- **protobuf + buf** — same as above, plus the relay doesn't have a .proto
-  for its HTTP API.
-- **Don't bother** — let the types drift. Unacceptable for any code that
-  wants to be taken seriously.
+- **OpenAPI-спецификация + codegen** — правильный ответ для production-системы
+  со многими потребителями. Избыточно для портфолио с одним фронтендом, и
+  Go-бэкенд не выставляет спецификацию.
+- **protobuf + buf** — то же самое, плюс у relay нет .proto для HTTP-API.
+- **Не заморачиваться** — пусть типы расходятся. Недопустимо для любого кода,
+  который хотят воспринимать серьёзно.
 
-This ADR is the kind of thing an interviewer will ask about: "how do you
-keep the frontend and backend in sync?" The answer — manual mirroring with
-unit tests — is honest, pragmatic, and shows awareness of the trade-offs.
+Этот ADR — то, о чём интервьюер обязательно спросит: «как синхронизируешь
+фронтенд и бэкенд?». Ответ — ручное зеркалирование с unit-тестами — честный,
+прагматичный и показывающий осознание trade-offs.

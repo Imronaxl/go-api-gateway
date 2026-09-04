@@ -1,76 +1,74 @@
-# ADR-0003: Built-in simulation engine for offline preview
+# ADR-0003: Встроенный движок симуляции для офлайн-превью
 
-**Status:** Accepted
+**Статус:** Принято
 
 ## Summary
 
-The dashboard ships with a TypeScript simulation engine that reproduces
-the behavior of the Go relay — token bucket rate limiter, circuit breaker
-state machine, round-robin load balancer, structured logging. When the real
-relay isn't reachable, the dashboard runs on the simulator so it's always
-explorable.
+Дашборд поставляется с TypeScript-движком симуляции, воспроизводящим
+поведение Go-сервиса relay — token bucket rate limiter, state-machine
+circuit breaker, round-robin load balancer, структурированное логирование.
+Когда реальный relay недоступен, дашборд работает на симуляторе, оставаясь
+полностью исследуемым.
 
-## Context
+## Контекст
 
-The dashboard's primary audience is a reviewer looking at the portfolio
-piece in a preview environment. The Go backend isn't running in that
-environment — and even if it were, configuring JWT tokens and Prometheus
-endpoints just to see the dashboard would be friction.
+Основная аудитория дашборда — ревьюер, смотрящий портфолио в preview-окружении.
+Go-бэкенд в этом окружении не запущен — а даже если бы и был, настройка
+JWT-токенов и Prometheus-эндпоинтов только чтобы увидеть дашборд — лишнее
+трение.
 
-But the dashboard also needs to *work* against a real relay when one is
-available, so it's not just a static mockup.
+Но дашборд также должен *работать* с реальным relay, когда тот доступен,
+иначе это просто статичный мокап.
 
-## Decision
+## Решение
 
-Build a faithful simulator in `src/lib/gateway/mock-engine.ts` that mirrors
-the Go middleware:
+Строим faithful-симулятор в `src/lib/gateway/mock-engine.ts`, зеркалящий
+Go-middleware:
 
-- **Token bucket** — same algorithm as `internal/middleware/ratelimit`,
-  using the same default `rate=100, burst=50`.
-- **Circuit breaker** — same state machine (closed → open → half-open →
-  closed) with the same thresholds (`MaxFailures=5, Timeout=30s,
-  HalfOpenLimit=3`).
-- **Round-robin balancer** — same selection strategy as
+- **Token bucket** — тот же алгоритм, что в
+  `internal/middleware/ratelimit`, с теми же дефолтами `rate=100, burst=50`.
+- **Circuit breaker** — та же state-machine (closed → open → half-open →
+  closed) с теми же порогами (`MaxFailures=5, Timeout=30s, HalfOpenLimit=3`).
+- **Round-robin balancer** — та же стратегия выбора, что в
   `internal/proxy/proxy.go`.
-- **Structured logs** — emits `slog`-shaped entries with the same fields
+- **Структурированные логи** — эмитит `slog`-shape записи с теми же полями
   (method, path, status, duration, backend, trace_id).
 
-The store's `mode` field (`auto` | `live` | `simulated`) controls which
-source is used. In `auto` mode, a probe to `/health` determines
-reachability; if it fails, the simulator takes over.
+Поле `mode` в сторе (`auto` | `live` | `simulated`) управляет источником
+данных. В режиме `auto` проба на `/health` определяет достижимость; если
+не отвечает — вступает симулятор.
 
-## Consequences
+## Последствия
 
-**Positive**
+**Положительные**
 
-- The dashboard is always explorable — reviewers can poke around without
-  running anything
-- The simulator is a teaching tool — the "Inject failure burst" button
-  demonstrates the circuit breaker tripping in real time
-- The TypeScript types in `types.ts` mirror the Go structs, so the boundary
-  between frontend and backend is explicit
-- Writing the simulator forced me to actually understand the Go code, not
-  just consume it
+- Дашборд всегда исследуем — ревьюер может покликать без запуска чего-либо
+- Симулятор — обучающий инструмент: кнопка «Inject failure burst»
+  демонстрирует срабатывание circuit breaker в реальном времени
+- TypeScript-типы в `types.ts` зеркалят Go-структуры, поэтому граница
+  между фронтендом и бэкендом явная
+- Написание симулятора заставило по-настоящему разобраться в Go-коде, а не
+  просто его потреблять
 
-**Negative**
+**Отрицательные**
 
-- Two implementations of the same logic — if the Go code changes, the
-  simulator has to follow. Mitigated by unit tests in
-  `__tests__/mock-engine.test.ts` that pin the expected behavior.
-- The simulator's traffic patterns are synthetic — they look real but
-  aren't statistically representative of any actual workload.
+- Две реализации одной логики — если Go-код поменяется, симулятор должен
+  за ним следовать. Смягчается unit-тестами в
+  `__tests__/mock-engine.test.ts`, фиксирующими ожидаемое поведение.
+- Трафик симулятора синтетический — выглядит реалистично, но не отражает
+  статистически никакую реальную нагрузку.
 
-## Alternatives considered
+## Рассмотренные альтернативы
 
-- **Static JSON fixtures** — read a canned `metrics.json`. Easy but the
-  dashboard would look dead — no live updates, no circuit breaker
-  transitions. Reject.
-- **MSW (Mock Service Worker)** — intercept `fetch` calls and return mocked
-  responses. Good for testing but doesn't help with the simulation *engine*
-  (rate limit, breaker) — only with HTTP responses.
-- **Don't ship a simulator** — require the Go backend to be running.
-  Acceptable for a production tool, fatal for a portfolio piece.
+- **Статичные JSON-фикстуры** — читать готовый `metrics.json`. Просто, но
+  дашборд выглядит мёртвым — никаких live-обновлений, никаких переходов
+  circuit breaker. Отклонено.
+- **MSW (Mock Service Worker)** — перехватывать `fetch` и возвращать
+  замоканные ответы. Хорошо для тестов, но не помогает с движком симуляции
+  (rate limit, breaker) — только с HTTP-ответами.
+- **Не делать симулятор** — требовать запущенный Go-бэкенд. Допустимо для
+  production-инструмента, фатально для портфолио.
 
-The simulator is the most distinctive feature of this dashboard. It's the
-difference between "I built a frontend for a Go backend" and "I understand
-the Go backend well enough to reproduce it".
+Симулятор — самая отличительная черта этого дашборда. Это разница между
+«я сделал фронтенд для Go-бэкенда» и «я понимаю Go-бэкенд достаточно, чтобы
+его воспроизвести».

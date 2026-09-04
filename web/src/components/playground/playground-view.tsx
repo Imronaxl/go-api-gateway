@@ -100,8 +100,8 @@ export function PlaygroundView() {
     <div className="grid h-full grid-cols-1 gap-4 p-6 lg:grid-cols-2">
       {}
       <Panel
-        title="Request"
-        description="Sent through the relay with the configured JWT"
+        title="Запрос"
+        description="Отправляется через relay с настроенным JWT"
         actions={
           <StatusBadge
             tone={config.mode === "live" ? "cyan" : "slate"}
@@ -146,7 +146,7 @@ export function PlaygroundView() {
               value={path}
               onChange={(e) => setPath(e.target.value)}
               className="h-9 border-0 bg-transparent px-0 font-mono text-xs shadow-none focus-visible:ring-0"
-              placeholder="/path"
+              placeholder="/путь"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSend();
               }}
@@ -162,16 +162,16 @@ export function PlaygroundView() {
             ) : (
               <Send className="h-3.5 w-3.5" />
             )}
-            Send
+            Отправить
           </Button>
         </div>
 
         {}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <MetricLabel>Headers</MetricLabel>
+            <MetricLabel>Заголовки</MetricLabel>
             <span className="font-mono text-[10px] text-muted-foreground/50">
-              Authorization auto-added
+              Authorization добавляется автоматически
             </span>
           </div>
           <div className="space-y-1">
@@ -189,7 +189,7 @@ export function PlaygroundView() {
                   type="button"
                   onClick={() => removeHeader(k)}
                   className="font-mono text-[10px] text-muted-foreground/50 hover:text-rose-400"
-                  aria-label={`Remove header ${k}`}
+                  aria-label={`Удалить заголовок ${k}`}
                 >
                   ×
                 </button>
@@ -199,13 +199,13 @@ export function PlaygroundView() {
               <Input
                 value={newHeaderKey}
                 onChange={(e) => setNewHeaderKey(e.target.value)}
-                placeholder="header name"
+                placeholder="имя заголовка"
                 className="h-8 font-mono text-[11px]"
               />
               <Input
                 value={newHeaderValue}
                 onChange={(e) => setNewHeaderValue(e.target.value)}
-                placeholder="value"
+                placeholder="значение"
                 className="h-8 font-mono text-[11px]"
               />
               <Button
@@ -223,7 +223,7 @@ export function PlaygroundView() {
         {}
         {!["GET", "HEAD"].includes(method) && (
           <div className="space-y-2">
-            <MetricLabel>Body</MetricLabel>
+            <MetricLabel>Тело</MetricLabel>
             <Textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
@@ -236,7 +236,7 @@ export function PlaygroundView() {
         {}
         {responseHistory.length > 0 && (
           <div className="space-y-1.5">
-            <MetricLabel>History</MetricLabel>
+            <MetricLabel>История</MetricLabel>
             <div className="max-h-32 space-y-1 overflow-y-auto">
               {responseHistory.map((r, i) => (
                 <HistoryRow key={r.requestId} response={r} index={i} />
@@ -248,8 +248,8 @@ export function PlaygroundView() {
 
       {}
       <Panel
-        title="Response"
-        description="Includes per-stage timing breakdown"
+        title="Ответ"
+        description="Включает per-stage timing breakdown"
         bodyClassName="p-0"
         actions={
           lastResponse ? (
@@ -263,7 +263,7 @@ export function PlaygroundView() {
         {!lastResponse ? (
           <div className="flex h-72 flex-col items-center justify-center gap-2 text-muted-foreground/50">
             <Send className="h-6 w-6" />
-            <p className="font-mono text-xs">Send a request to see the response</p>
+            <p className="font-mono text-xs">Отправьте запрос, чтобы увидеть ответ</p>
           </div>
         ) : (
           <ResponsePanel response={lastResponse} />
@@ -334,7 +334,7 @@ function ResponsePanel({ response }: { response: PlaygroundResponse }) {
 
       {}
       <Section
-        title="Timing breakdown"
+        title="Время по стадиям"
         open={showTiming}
         onToggle={() => setShowTiming((v) => !v)}
       >
@@ -343,7 +343,7 @@ function ResponsePanel({ response }: { response: PlaygroundResponse }) {
 
       {}
       <Section
-        title="Response headers"
+        title="Заголовки ответа"
         open={showHeaders}
         onToggle={() => setShowHeaders((v) => !v)}
       >
@@ -359,7 +359,7 @@ function ResponsePanel({ response }: { response: PlaygroundResponse }) {
 
       {}
       <Section
-        title="Body"
+        title="Тело"
         open={showBody}
         onToggle={() => setShowBody((v) => !v)}
       >
@@ -457,7 +457,7 @@ function TimingWaterfall({
       })}
       <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-2">
         <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
-          Total
+          Всего
         </span>
         <span className="font-mono text-xs tnum font-medium text-foreground">
           {formatMs(total)}

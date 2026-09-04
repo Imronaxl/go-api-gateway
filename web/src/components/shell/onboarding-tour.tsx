@@ -18,37 +18,37 @@ interface TourStep {
 const STEPS: TourStep[] = [
   {
     target: '[data-tour="sidebar"]',
-    title: "Welcome to Relay Control Plane",
-    body: "This dashboard is the frontend companion to the go-api-gateway relay service. It speaks to the relay at :8080 and Prometheus at :9090 — and falls back to a built-in simulator when the backend isn't running. Let's take a quick tour.",
+    title: "Добро пожаловать в Relay Control Plane",
+    body: "Этот дашборд — фронтенд-компаньон к сервису go-api-gateway. Он обращается к relay на :8080 и к Prometheus на :9090, а при недоступности бэкенда переключается на встроенный симулятор. Пройдёмся коротко.",
   },
   {
     target: '[data-tour="view-overview"]',
-    title: "Overview",
-    body: "The landing page. Live KPIs (RPS, p99 latency, error rate, circuit breaker state), a traffic chart, the middleware chain, and the backend pool. Use the 'Inject failure burst' button to watch the circuit breaker trip in real time.",
+    title: "Обзор",
+    body: "Главная страница. Живые KPI (RPS, p99-латентность, error rate, состояние circuit breaker), график трафика, цепочка middleware и пул бэкендов. Кнопка «Инжектить всплеск ошибок» позволяет увидеть, как circuit breaker срабатывает в реальном времени.",
     view: "overview",
   },
   {
     target: '[data-tour="view-playground"]',
-    title: "Playground",
-    body: "Send real requests through the gateway. Pick a preset, hit Send, and inspect the per-stage timing waterfall — you can see exactly how many milliseconds each middleware stage adds on top of the backend response.",
+    title: "Песочница",
+    body: "Отправляйте реальные запросы через gateway. Выберите пресет, нажмите «Отправить» и изучите per-stage timing waterfall — видно, сколько миллисекунд добавляет каждая стадия middleware поверх ответа бэкенда.",
     view: "playground",
   },
   {
     target: '[data-tour="view-metrics"]',
-    title: "Metrics",
-    body: "Prometheus-style charts: latency trend (p50/p95/p99), a latency histogram, status code distribution. Switch to 'live' mode in the top bar to scrape the real /metrics endpoint.",
+    title: "Метрики",
+    body: "Графики в стиле Prometheus: тренд латентности (p50/p95/p99), гистограмма латентности, распределение статус-кодов. Переключитесь в режим «live» в верхней панели, чтобы скрапить реальный /metrics endpoint.",
     view: "metrics",
   },
   {
     target: '[data-tour="view-architecture"]',
-    title: "Architecture",
-    body: "A visual diagram of the middleware chain. Click the info dots next to any concept (circuit breaker, rate limiting, JWT) to open a written explainer — useful if you're new to these patterns.",
+    title: "Архитектура",
+    body: "Визуальная диаграмма цепочки middleware. Кликните по info-точкам рядом с любым понятием (circuit breaker, rate limiting, JWT), чтобы открыть письменное объяснение паттерна — пригодится, если эти паттерны для вас новые.",
     view: "architecture",
   },
   {
     target: '[data-tour="hint-badge"]',
-    title: "Keyboard shortcuts",
-    body: "Press ⌘K (or Ctrl+K) anywhere to open the command palette. Press ? for the full cheat sheet. Numbers 1–6 jump between views. R re-probes the gateway.",
+    title: "Горячие клавиши",
+    body: "Нажмите ⌘K (или Ctrl+K) где угодно, чтобы открыть командную палитру. Нажмите ? для полной шпаргалки. Цифры 1–6 переключают разделы. R — перепроверить gateway.",
   },
 ];
 
@@ -136,7 +136,7 @@ function TourPopover({
           type="button"
           onClick={onSkip}
           className="absolute right-3 top-3 rounded p-1 text-muted-foreground/60 hover:bg-muted/40 hover:text-foreground"
-          aria-label="Skip tour"
+          aria-label="Пропустить тур"
         >
           <X className="h-3.5 w-3.5" />
         </button>
@@ -182,7 +182,7 @@ function TourPopover({
                 className="h-7 gap-1 font-mono text-[11px]"
               >
                 <ChevronLeft className="h-3 w-3" />
-                Back
+                Назад
               </Button>
             )}
             <Button
@@ -190,7 +190,7 @@ function TourPopover({
               onClick={onNext}
               className="h-7 gap-1 bg-cyan-500/90 font-mono text-[11px] text-slate-950 hover:bg-cyan-400"
             >
-              {stepNum === total - 1 ? "Finish" : "Next"}
+              {stepNum === total - 1 ? "Завершить" : "Далее"}
               {stepNum < total - 1 && <ChevronRight className="h-3 w-3" />}
             </Button>
           </div>

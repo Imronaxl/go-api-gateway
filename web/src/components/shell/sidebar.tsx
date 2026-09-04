@@ -24,43 +24,43 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   {
     id: "overview",
-    label: "Overview",
-    description: "Live KPIs and traffic",
+    label: "Обзор",
+    description: "Живые KPI и трафик",
     icon: Activity,
     tour: "view-overview",
   },
   {
     id: "playground",
-    label: "Playground",
-    description: "Send requests through the gateway",
+    label: "Песочница",
+    description: "Запросы через gateway",
     icon: Send,
     tour: "view-playground",
   },
   {
     id: "metrics",
-    label: "Metrics",
-    description: "Prometheus-style charts",
+    label: "Метрики",
+    description: "Графики в стиле Prometheus",
     icon: BarChart3,
     tour: "view-metrics",
   },
   {
     id: "backends",
-    label: "Backends",
-    description: "Upstream pool & health",
+    label: "Бэкенды",
+    description: "Пул upstream и здоровье",
     icon: Server,
     tour: "view-backends",
   },
   {
     id: "logs",
-    label: "Logs",
-    description: "Structured request log",
+    label: "Логи",
+    description: "Структурированный лог запросов",
     icon: ScrollText,
     tour: "view-logs",
   },
   {
     id: "architecture",
-    label: "Architecture",
-    description: "Middleware chain diagram",
+    label: "Архитектура",
+    description: "Диаграмма middleware chain",
     icon: Workflow,
     tour: "view-architecture",
   },
@@ -86,14 +86,14 @@ export function Sidebar() {
             relay
           </div>
           <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
-            control plane
+            панель управления
           </div>
         </div>
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
         <div className="px-2 pb-1 pt-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/50">
-          Monitor
+          Мониторинг
         </div>
         {NAV_ITEMS.slice(0, 4).map((item) => (
           <NavButton
@@ -104,7 +104,7 @@ export function Sidebar() {
           />
         ))}
         <div className="px-2 pb-1 pt-4 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/50">
-          Inspect
+          Инспекция
         </div>
         {NAV_ITEMS.slice(4).map((item) => (
           <NavButton
@@ -120,7 +120,7 @@ export function Sidebar() {
         <div className="rounded-md border border-border/60 bg-muted/40 p-3">
           <div className="flex items-center justify-between">
             <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
-              Live RPS
+              Живые RPS
             </span>
             <StatusDot tone="emerald" pulse size="sm" />
           </div>
@@ -128,7 +128,7 @@ export function Sidebar() {
             {metrics ? metrics.rps.toFixed(1) : "—"}
           </div>
           <div className="mt-0.5 font-mono text-[10px] text-muted-foreground/60">
-            {metrics ? `${metrics.totalRequests.toLocaleString()} total` : "initializing"}
+            {metrics ? `${metrics.totalRequests.toLocaleString("ru-RU")} всего` : "инициализация"}
           </div>
         </div>
       </div>
