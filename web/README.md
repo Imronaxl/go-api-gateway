@@ -1,243 +1,247 @@
 # Relay · Gateway Control Plane
 
-Operations dashboard for the [`go-api-gateway`](../README.md) relay service.
-Built with Next.js 16, TypeScript, Tailwind CSS 4, and shadcn/ui.
+Operations-дашборд для сервиса [`go-api-gateway`](../README.md).
+Построен на Next.js 16, TypeScript, Tailwind CSS 4 и shadcn/ui.
 
-Portfolio piece demonstrating how to build a real-world SRE / platform
-engineering dashboard that talks to a real Go backend.
+Портфолийный проект, демонстрирующий как строить реальный SRE / platform
+engineering дашборд, работающий с настоящим Go-бэкендом.
 
-## Screenshots
+## Скриншоты
 
-Each screenshot below shows a distinct part of the interface. Click any image
-to view it full-size.
+Каждый скриншот ниже показывает отдельную часть интерфейса. Кликните по
+изображению, чтобы открыть его в полном размере.
 
 ### 1. Overview
 
-The landing page — live KPIs (RPS, p99 latency, error rate, circuit breaker
-state) with sparklines, a traffic chart, the circuit breaker panel with
-state-machine visualization, the middleware chain, the backend pool, and a
-recent-requests table. Simulation control buttons at the top let you trigger
-circuit breaker events in real time.
+Главная страница — живые KPI (RPS, p99-латентность, error rate, состояние
+circuit breaker) со спарклайнами, график трафика, панель circuit breaker с
+визуализацией state-machine, цепочка middleware, пул бэкендов и таблица
+недавних запросов. Кнопки управления симуляцией наверху позволяют в реальном
+времени триггерить события circuit breaker.
 
 ![Overview](./screenshots/01-overview.png)
 
-### 2. Playground — request builder
+### 2. Playground — конструктор запроса
 
-Send requests through the gateway with a configurable JWT. Preset buttons for
-common paths, full header editor, body editor for non-GET methods. The JWT
-token is auto-injected into the `Authorization` header.
+Отправка запросов через gateway с настраиваемым JWT. Кнопки пресетов для
+частых путей, полноценный редактор заголовков, редактор тела для non-GET
+методов. JWT-токен автоматически добавляется в заголовок `Authorization`.
 
-![Playground — request](./screenshots/02-playground.png)
+![Playground — запрос](./screenshots/02-playground.png)
 
-### 2b. Playground — response with timing waterfall
+### 2b. Playground — ответ с timing waterfall
 
-After sending a request, the response panel shows the status, total duration,
-which backend handled it, and a per-stage timing waterfall — each middleware
-stage (logging, tracing, auth, ratelimit, loadbalancer, circuitbreaker,
-backend) is shown as a horizontal bar so you can see exactly where time is
-spent.
+После отправки запроса панель ответа показывает статус, общую длительность,
+какой бэкенд обработал запрос, и per-stage timing waterfall — каждая стадия
+middleware (logging, tracing, auth, ratelimit, loadbalancer, circuitbreaker,
+backend) отображается как горизонтальный отрезок, чтобы было видно, где
+именно тратится время.
 
-![Playground — response](./screenshots/02b-playground-response.png)
+![Playground — ответ](./screenshots/02b-playground-response.png)
 
 ### 3. Metrics
 
-Prometheus-style charts using Recharts: KPI cards for rps/p50/p95/p99/errors/
-429s, latency trend (stacked p50/p95/p99 area chart), latency histogram
-(bucketed distribution), status code distribution (horizontal bar), total
-request counter, and the raw Prometheus text exposition when in live mode.
+Графики в стиле Prometheus на базе Recharts: KPI-карточки для rps/p50/p95/
+p99/errors/429s, тренд латентности (стэк-диаграмма p50/p95/p99), гистограмма
+латентности (распределение по бакетам), распределение статус-кодов
+(горизонтальный бар), счётчик общего количества запросов и сырая выгрузка
+Prometheus в текстовом виде в live-режиме.
 
 ![Metrics](./screenshots/03-metrics.png)
 
 ### 4. Backends
 
-Upstream pool with per-backend cards: traffic share progress bar, average
-latency, error rate, total requests handled, drain/enable controls. Pool
-summary at the top shows total size, alive count, average latency, and pool
-error rate.
+Пул upstream-сервисов с карточками по каждому бэкенду: прогресс-бар доли
+трафика, средняя латентность, error rate, общее количество обработанных
+запросов, контролы drain/enable. Сводка по пулу наверху показывает общий
+размер, число живых, среднюю латентность и error rate пула.
 
 ![Backends](./screenshots/04-backends.png)
 
 ### 5. Logs
 
-Structured `slog` viewer — newest first, with level filter (debug/info/warn/
-error), free-text search across message and fields, pause/resume to freeze
-the stream for inspection, and JSON export for offline analysis.
+Структурированный просмотрщик `slog` — новые записи сверху, с фильтром по
+уровню (debug/info/warn/error), полнотекстовым поиском по сообщению и полям,
+паузой/возобновлением для заморозки потока при разборе, и экспортом в JSON
+для офлайн-анализа.
 
 ![Logs](./screenshots/05-logs.png)
 
 ### 6. Architecture
 
-Visual flow diagram of the middleware chain. Left column shows the inbound
-request path (client → each middleware → backend), right column shows the
-outbound response path. Detail cards below explain each stage with its package
-path and overhead.
+Визуальная блок-схема цепочки middleware. Левая колонка — путь входящего
+запроса (клиент → каждый middleware → бэкенд), правая колонка — путь
+исходящего ответа. Карточки деталей ниже объясняют каждую стадию с указанием
+пакета и overhead.
 
 ![Architecture](./screenshots/06-architecture.png)
 
 ### 7. Command palette (⌘K)
 
-Press `⌘K` (or `Ctrl+K`) anywhere to open the command palette. Fuzzy-search
-across all views and actions — navigate with arrow keys, run with Enter.
+Нажмите `⌘K` (или `Ctrl+K`) где угодно, чтобы открыть командную палитру.
+Fuzzy-поиск по всем разделам и действиям — навигация стрелками, запуск
+через Enter.
 
-![Command palette](./screenshots/07-command-palette.png)
+![Командная палитра](./screenshots/07-command-palette.png)
 
-### 8. Keyboard cheat sheet (?)
+### 8. Шпаргалка по горячим клавишам (?)
 
-Press `?` to bring up the full list of keyboard shortcuts. Numbers 1–6 switch
-between views, `R` re-probes the gateway, `Esc` closes any open dialog.
+Нажмите `?`, чтобы открыть полный список горячих клавиш. Цифры 1–6
+переключают разделы, `R` перепроверяет доступность gateway, `Esc` закрывает
+любой открытый диалог.
 
-![Cheat sheet](./screenshots/08-cheat-sheet.png)
+![Шпаргалка](./screenshots/08-cheat-sheet.png)
 
 ### 9. Concept explainer
 
-Small `i` buttons next to circuit breaker, rate limit, JWT, load balancing,
-tracing, and middleware chain titles open a written explanation of the
-pattern — the problem it solves, how it works, how it's implemented in this
-gateway, and what else is worth knowing.
+Маленькие кнопки `i` рядом с заголовками circuit breaker, rate limit, JWT,
+load balancing, tracing и middleware chain открывают письменное объяснение
+паттерна — какую проблему решает, как работает, как реализован в этом
+gateway, и что ещё стоит знать.
 
 ![Concept explainer](./screenshots/09-concept-explainer.png)
 
 ### 10. Onboarding tour
 
-First-time visitors get a 6-step walkthrough with progress dots. Skipped or
-completed tours are remembered via `localStorage` so they don't pester
-returning users.
+При первом заходе посетитель получает пошаговый тур из 6 шагов с индикатором
+прогресса. Пропущенные или завершённые туры запоминаются в `localStorage`,
+чтобы не беспокоить возвращающихся пользователей.
 
 ![Onboarding tour](./screenshots/10-onboarding-tour.png)
 
-### 11. Circuit breaker — open state
+### 11. Circuit breaker — состояние open
 
-Clicking "Force breaker open" (or "Inject failure burst") trips the circuit
-breaker. The state badge turns rose, the visualization shows `open` as the
-active state, and subsequent requests return 503 with "service unavailable —
-circuit open" log entries.
+Клик по «Force breaker open» (или «Inject failure burst») переключает circuit
+breaker в открытое состояние. Бейдж статуса становится розовым, визуализация
+показывает `open` как активное состояние, а последующие запросы возвращают
+503 с записями в логе «service unavailable — circuit open».
 
 ![Circuit breaker open](./screenshots/11-circuit-breaker-open.png)
 
-## Quick start
+## Быстрый старт
 
 ```bash
 cd web
 bun install
 bun run dev      # http://localhost:3000
 bun run lint     # ESLint
-bun test         # 61 unit tests across 3 files
+bun test         # 61 unit-тест в 3 файлах
 ```
 
-No backend required — the dashboard ships with a built-in simulator that
-reproduces the behavior of the Go relay (token bucket, circuit breaker,
-round-robin). Switch to `live` mode in the top bar to talk to a real relay.
+Бэкенд не требуется — дашборд поставляется со встроенным симулятором, который
+воспроизводит поведение Go-сервиса relay (token bucket, circuit breaker,
+round-robin). Переключитесь в режим `live` в верхней панели, чтобы работать
+с реальным relay.
 
-## Features
+## Возможности
 
-### Six views
+### Шесть разделов
 
-| View          | What's there                                                       |
+| Раздел        | Что внутри                                                         |
 | ------------- | ------------------------------------------------------------------ |
-| **Overview**  | KPI cards with sparklines, live traffic chart, circuit breaker panel with state machine visualization, middleware chain, backend pool, recent requests table, simulation control buttons |
-| **Playground**| Request builder (method, path, headers, body, presets) with JWT auto-injected. Response panel shows status, per-stage timing waterfall, response headers, and body |
-| **Metrics**   | Prometheus-style charts using Recharts: latency trend (p50/p95/p99), latency histogram, status code distribution, total request counter, plus raw Prometheus exposition in live mode |
-| **Backends**  | Pool stats + per-backend cards with traffic share, latency, error rate, drain/enable controls |
-| **Logs**      | Structured `slog` viewer with level filter, free-text search, pause/resume, JSON export |
-| **Architecture** | Visual flow diagram of the middleware chain (request → backends → response) plus detail cards for each stage |
+| **Overview**  | KPI-карточки со спарклайнами, live-график трафика, панель circuit breaker с визуализацией state-machine, цепочка middleware, пул бэкендов, таблица недавних запросов, кнопки управления симуляцией |
+| **Playground**| Конструктор запроса (метод, путь, заголовки, тело, пресеты) с авто-подстановкой JWT. Панель ответа показывает статус, per-stage timing waterfall, заголовки ответа и тело |
+| **Metrics**   | Графики в стиле Prometheus на Recharts: тренд латентности (p50/p95/p99), гистограмма латентности, распределение статус-кодов, счётчик общего числа запросов, плюс сырая выгрузка Prometheus в live-режиме |
+| **Backends**  | Сводка по пулу + карточки по каждому бэкенду с долей трафика, латентностью, error rate, контрлами drain/enable |
+| **Logs**      | Структурированный просмотрщик `slog` с фильтром по уровню, полнотекстовым поиском, паузой/возобновлением, экспортом в JSON |
+| **Architecture** | Визуальная блок-схема цепочки middleware (запрос → бэкенды → ответ) плюс карточки деталей по каждой стадии |
 
-### Interview-friendly extras
+### Дополнительно для собеседования
 
-- **Built-in simulation engine** (`src/lib/gateway/mock-engine.ts`) —
-  reproduces the Go middleware's token bucket, circuit breaker state
-  machine, and round-robin balancer in TypeScript. See [ADR-0003](./docs/adr/0003-simulation-engine.md).
-- **Concept explainer modals** — click the `i` dots next to circuit breaker,
-  rate limit, JWT, load balancing, tracing, or middleware chain to open a
-  written explanation of the pattern.
-- **Keyboard shortcuts** — `1`–`6` to switch views, `⌘K` for the command
-  palette, `?` for the cheat sheet, `R` to re-probe.
-- **Command palette** (⌘K) — fuzzy-searchable list of every view and action.
-- **Onboarding tour** — first-run walkthrough with progress dots, stored in
-  localStorage.
-- **Unit tests** (61 tests, 3 files) — pin down the formatters, the circuit
-  breaker state machine, and the contract with the Go backend. Run with
-  `bun test`.
-- **Architecture Decision Records** (`docs/adr/`) — five short documents
-  explaining *why* each major choice was made.
-- **TypeScript types mirror Go structs** — `DEFAULT_GATEWAY_CONFIG` matches
-  the constants in `cmd/relay/main.go`, and a test enforces it. See
-  [ADR-0005](./docs/adr/0005-types-mirror-go-structs.md).
+- **Встроенный движок симуляции** (`src/lib/gateway/mock-engine.ts`) —
+  воспроизводит на TypeScript token bucket, state-machine circuit breaker и
+  round-robin балансировщик из Go-middleware. См. [ADR-0003](./docs/adr/0003-simulation-engine.md).
+- **Concept explainer модалки** — кликните по `i` рядом с circuit breaker,
+  rate limit, JWT, load balancing, tracing или middleware chain, чтобы
+  открыть письменное объяснение паттерна.
+- **Горячие клавиши** — `1`–`6` переключают разделы, `⌘K` открывает командную
+  палитру, `?` — шпаргалку, `R` перепроверяет gateway.
+- **Командная палитра** (⌘K) — fuzzy-поиск по всем разделам и действиям.
+- **Onboarding tour** — пошаговое введение при первом запуске с индикатором
+  прогресса, хранится в localStorage.
+- **Unit-тесты** (61 тест, 3 файла) — фиксируют форматоры, state-machine
+  circuit breaker и контракт с Go-бэкендом. Запуск: `bun test`.
+- **Architecture Decision Records** (`docs/adr/`) — пять коротких документов,
+  объясняющих, *почему* принято каждое крупное решение.
+- **TypeScript-типы зеркалят Go-структуры** — `DEFAULT_GATEWAY_CONFIG`
+  соответствует константам из `cmd/relay/main.go`, и тест это проверяет.
+  См. [ADR-0005](./docs/adr/0005-types-mirror-go-structs.md).
 
-### Live mode
+### Live-режим
 
-When a real relay is reachable, the dashboard switches to live mode:
+Когда реальный relay доступен, дашборд переключается в live-режим:
 
-- Playground requests go through `fetch()` to the relay at `:8080` with
-  the configured JWT
-- The Metrics view scrapes and parses the Prometheus text exposition from
+- Запросы из Playground идут через `fetch()` к relay на `:8080` с
+  настроенным JWT
+- Раздел Metrics скрапит и парсит текстовую выгрузку Prometheus с
   `:9090/metrics`
-- The connection badge in the top bar shows probe latency
+- Бейдж подключения в верхней панели показывает латентность пробы
 
-Switch via the **Settings** gear in the top bar, or press `⌘K` and search
-for "live".
+Переключение через **шестерёнку** в верхней панели, либо нажмите `⌘K` и
+ищите «live».
 
-## Architecture
+## Архитектура
 
 ```
 web/
 ├── docs/adr/                # Architecture Decision Records
-├── screenshots/             # Screenshots for the README
+├── screenshots/             # Скриншоты для README
 ├── public/
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx       # Forces dark theme, sets metadata
-│   │   ├── page.tsx         # Entry — renders <DashboardShell />
-│   │   └── globals.css      # Dark SRE theme tokens, scrollbars, glow utilities
+│   │   ├── layout.tsx       # Принудительно dark-тема, метаданные
+│   │   ├── page.tsx         # Точка входа — рендерит <DashboardShell />
+│   │   └── globals.css      # Токены dark SRE-темы, скроллбары, glow-утилиты
 │   ├── lib/gateway/
-│   │   ├── types.ts         # Domain types matching Go structs (ADR-0005)
-│   │   ├── client.ts        # Live fetch wrapper + Prometheus parser
-│   │   ├── mock-engine.ts   # Simulated gateway (ADR-0003)
-│   │   ├── store.ts         # Zustand store (ADR-0002)
-│   │   ├── format.ts        # Display formatters
+│   │   ├── types.ts         # Доменные типы, зеркалящие Go-структуры (ADR-0005)
+│   │   ├── client.ts        # Live-обёртка над fetch + парсер Prometheus
+│   │   ├── mock-engine.ts   # Симулятор gateway (ADR-0003)
+│   │   ├── store.ts         # Zustand-стор (ADR-0002)
+│   │   ├── format.ts        # Форматтеры отображения
 │   │   ├── use-keyboard-shortcuts.ts
-│   │   └── __tests__/       # Unit tests (bun test)
+│   │   └── __tests__/       # Unit-тесты (bun test)
 │   ├── components/
 │   │   ├── shell/           # Sidebar, topbar, dashboard shell, command palette, cheat sheet, onboarding
-│   │   ├── overview/        # KPIs, traffic chart, CB panel, backend pool
-│   │   ├── playground/      # Request builder, response panel, timing waterfall
-│   │   ├── metrics/         # Recharts visualizations
-│   │   ├── backends/        # Backend cards with controls
-│   │   ├── logs/            # Structured log viewer with filters
-│   │   ├── architecture/    # Middleware chain flow diagram
+│   │   ├── overview/        # KPI, график трафика, панель CB, пул бэкендов
+│   │   ├── playground/      # Конструктор запроса, панель ответа, timing waterfall
+│   │   ├── metrics/         # Визуализации на Recharts
+│   │   ├── backends/        # Карточки бэкендов с контролами
+│   │   ├── logs/            # Структурированный просмотрщик логов с фильтрами
+│   │   ├── architecture/    # Блок-схема цепочки middleware
 │   │   ├── common/          # Panel, StatusDot, Sparkline, ConceptExplainer
-│   │   └── ui/              # shadcn/ui primitives
+│   │   └── ui/              # shadcn/ui-примитивы
 │   └── hooks/
 └── package.json
 ```
 
-## Tech stack
+## Технологический стек
 
-- **Next.js 16** with App Router — single-route SPA (see [ADR-0001](./docs/adr/0001-single-route-spa.md))
-- **TypeScript 5** strict mode throughout
-- **Tailwind CSS 4** with custom dark SRE theme tokens
-- **shadcn/ui** for primitive components (Button, Dialog, Select, etc.)
-- **Recharts** for time-series and histogram visualizations
-- **Zustand** for global state — single store, selector-based subscriptions
-- **Lucide** for iconography
-- **Bun** as the test runner and package manager
+- **Next.js 16** с App Router — одностраничный SPA (см. [ADR-0001](./docs/adr/0001-single-route-spa.md))
+- **TypeScript 5** strict mode во всём коде
+- **Tailwind CSS 4** с собственными токенами dark SRE-темы
+- **shadcn/ui** для примитивных компонентов (Button, Dialog, Select и т.д.)
+- **Recharts** для time-series и гистограмм
+- **Zustand** для глобального состояния — один стор, подписки через селекторы
+- **Lucide** для иконок
+- **Bun** как test runner и пакетный менеджер
 
-## Design language
+## Визуальный язык
 
-Terminal-inspired dark theme. See [ADR-0004](./docs/adr/0004-dark-theme-default.md).
+Тёмная тема в стиле терминала. Полное обоснование в [ADR-0004](./docs/adr/0004-dark-theme-default.md).
 
-- **Background**: deep slate (`oklch(0.16 0.012 240)`) with a subtle 24px dot grid
-- **Primary accent**: cyan (`oklch(0.78 0.15 195)`) — represents "active request"
-- **Healthy**: emerald — alive backends, `closed` breaker state
-- **Degraded**: amber — `half-open` breaker, rate-limited responses
-- **Errors**: rose — `open` breaker, 5xx responses, failure logs
-- **Typography**: Geist Sans for body, Geist Mono for numeric/code; `tabular-nums` globally
+- **Фон**: глубокий сланцевый (`oklch(0.16 0.012 240)`) с лёгкой точечной сеткой 24px
+- **Основной акцент**: циан (`oklch(0.78 0.15 195)`) — символизирует «активный запрос»
+- **Здоровое состояние**: изумрудный — живые бэкенды, `closed` у circuit breaker
+- **Деградация**: янтарный — `half-open` breaker, rate-limited ответы
+- **Ошибки**: розовый — `open` breaker, 5xx-ответы, логи ошибок
+- **Типографика**: Geist Sans для текста, Geist Mono для чисел и кода; `tabular-nums` глобально
 
-## Documentation
+## Документация
 
-- [Screenshots](./screenshots/) — 12 annotated screenshots covering every view and feature
-- [ADRs (Architecture Decision Records)](./docs/adr/README.md) — five documents explaining the major design choices
-- [Main project README](../README.md) — describes the Go backend
+- [Скриншоты](./screenshots/) — 12 аннотированных скриншотов по каждому разделу и функции
+- [ADR (Architecture Decision Records)](./docs/adr/README.md) — пять документов с обоснованием крупных решений
+- [README основного проекта](../README.md) — описание Go-бэкенда
 
-## License
+## Лицензия
 
-Same as the parent repository.
+Как у родительского репозитория.
