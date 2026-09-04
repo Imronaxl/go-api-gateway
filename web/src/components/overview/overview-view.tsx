@@ -47,13 +47,13 @@ export function OverviewView() {
       {}
       {effectiveMode === "simulated" && (
         <Panel
-          title="Simulation controls"
-          description="Trigger gateway events to explore the dashboard"
+          title="Управление симуляцией"
+          description="Триггерить события gateway для исследования дашборда"
           bodyClassName="p-3"
         >
           <div className="flex flex-wrap items-center gap-2">
             <span className="mr-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
-              Actions
+              Действия
             </span>
             <Button
               variant="outline"
@@ -62,7 +62,7 @@ export function OverviewView() {
               className="h-7 gap-1.5 border-rose-500/40 font-mono text-[11px] text-rose-300 hover:bg-rose-500/10"
             >
               <Flame className="h-3 w-3" />
-              Inject failure burst
+              Инжектить всплеск ошибок
             </Button>
             <Button
               variant="outline"
@@ -71,7 +71,7 @@ export function OverviewView() {
               className="h-7 gap-1.5 border-amber-500/40 font-mono text-[11px] text-amber-300 hover:bg-amber-500/10"
             >
               <CircuitBoard className="h-3 w-3" />
-              Force breaker open
+              Открыть breaker
             </Button>
             <Button
               variant="outline"
@@ -80,7 +80,7 @@ export function OverviewView() {
               className="h-7 gap-1.5 border-amber-500/40 font-mono text-[11px] text-amber-300 hover:bg-amber-500/10"
             >
               <CircuitBoard className="h-3 w-3" />
-              Force half-open
+              Перевести в half-open
             </Button>
             <Button
               variant="outline"
@@ -89,7 +89,7 @@ export function OverviewView() {
               className="h-7 gap-1.5 border-emerald-500/40 font-mono text-[11px] text-emerald-300 hover:bg-emerald-500/10"
             >
               <Power className="h-3 w-3" />
-              Close breaker
+              Закрыть breaker
             </Button>
             <Button
               variant="outline"
@@ -98,7 +98,7 @@ export function OverviewView() {
               className="h-7 gap-1.5 border-border/60 font-mono text-[11px] text-muted-foreground hover:bg-muted/50"
             >
               <RotateCcw className="h-3 w-3" />
-              Reset
+              Сбросить
             </Button>
           </div>
         </Panel>
@@ -107,7 +107,7 @@ export function OverviewView() {
       {}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KpiCard
-          label="Requests / sec"
+          label="Запросов / сек"
           value={metrics ? formatRps(metrics.rps) : "—"}
           icon={Activity}
           tone="cyan"
@@ -115,7 +115,7 @@ export function OverviewView() {
           sparkColor="oklch(0.78 0.15 195)"
         />
         <KpiCard
-          label="p99 latency"
+          label="p99 латентность"
           value={metrics ? formatMs(metrics.p99) : "—"}
           icon={Timer}
           tone="emerald"
@@ -124,7 +124,7 @@ export function OverviewView() {
           sub={metrics ? `p50 ${formatMs(metrics.p50)} · p95 ${formatMs(metrics.p95)}` : undefined}
         />
         <KpiCard
-          label="Error rate"
+          label="Доля ошибок"
           value={metrics ? formatPercent(metrics.errorRate, 2) : "—"}
           icon={AlertTriangle}
           tone={metrics && metrics.errorRate > 0.05 ? "rose" : "amber"}
@@ -139,7 +139,7 @@ export function OverviewView() {
           tone={
             cb.state === "closed" ? "emerald" : cb.state === "half-open" ? "amber" : "rose"
           }
-          sub={`${cb.failures}/${cb.config.maxFailures} failures`}
+          sub={`${cb.failures}/${cb.config.maxFailures} сбоев`}
         />
       </div>
 
@@ -147,8 +147,8 @@ export function OverviewView() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <Panel
-            title="Traffic"
-            description="Requests per second over the last 90 seconds"
+            title="Трафик"
+            description="Запросов в секунду за последние 90 секунд"
             actions={
               <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
                 <span className="flex items-center gap-1.5">
@@ -157,7 +157,7 @@ export function OverviewView() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-rose-400" />
-                  errors
+                  ошибки
                 </span>
               </div>
             }
@@ -194,11 +194,11 @@ export function OverviewView() {
         <Panel
           title={
             <span className="inline-flex items-center gap-1.5">
-              Middleware chain
+              Цепочка middleware
               <InfoDot concept="middleware-chain" />
             </span>
           }
-          description="Order matches cmd/relay/main.go"
+          description="Порядок совпадает с cmd/relay/main.go"
           actions={
             <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
               {MIDDLEWARE_CHAIN.length} stages
@@ -236,14 +236,14 @@ export function OverviewView() {
         <Panel
           title={
             <span className="inline-flex items-center gap-1.5">
-              Backend pool
+              Пул бэкендов
               <InfoDot concept="load-balancing" />
             </span>
           }
-          description="Round-robin load balancer"
+          description="Round-robin балансировщик нагрузки"
           actions={
             <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
-              {backends.filter((b) => b.alive).length}/{backends.length} alive
+              {backends.filter((b) => b.alive).length}/{backends.length} живых
             </span>
           }
         >
@@ -281,7 +281,7 @@ export function OverviewView() {
                 <div className="flex shrink-0 items-center gap-4">
                   <div className="text-right">
                     <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
-                      share
+                      доля
                     </div>
                     <div className="font-mono text-xs tnum text-foreground">
                       {b.trafficShare}%
@@ -315,8 +315,8 @@ export function OverviewView() {
 
       {}
       <Panel
-        title="Recent requests"
-        description="Last 30 requests seen by the gateway"
+        title="Недавние запросы"
+        description="Последние 30 запросов, прошедших через gateway"
         actions={
           <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
             <Zap className="h-3 w-3 text-cyan-300" />
@@ -329,12 +329,12 @@ export function OverviewView() {
           <table className="w-full text-left">
             <thead className="border-b border-border/60 bg-muted/30">
               <tr>
-                <Th>time</Th>
-                <Th>method</Th>
-                <Th>path</Th>
-                <Th>status</Th>
-                <Th>duration</Th>
-                <Th>backend</Th>
+                <Th>время</Th>
+                <Th>метод</Th>
+                <Th>путь</Th>
+                <Th>статус</Th>
+                <Th>длительность</Th>
+                <Th>бэкенд</Th>
                 <Th>trace</Th>
               </tr>
             </thead>
@@ -342,7 +342,7 @@ export function OverviewView() {
               {recent.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center font-mono text-xs text-muted-foreground/50">
-                    no traffic yet — waiting for first request…
+                    трафика пока нет — ожидание первого запроса…
                   </td>
                 </tr>
               )}
@@ -457,7 +457,7 @@ function CircuitBreakerDetail({
       {}
       <div>
         <div className="mb-1.5 flex items-center justify-between">
-          <MetricLabel>Failures</MetricLabel>
+          <MetricLabel>Сбои</MetricLabel>
           <span className="font-mono text-xs tnum text-foreground">
             {cb.failures} / {cb.config.maxFailures}
           </span>
@@ -477,11 +477,11 @@ function CircuitBreakerDetail({
 
       {}
       <div className="grid grid-cols-3 gap-3 border-t border-border/60 pt-3">
-        <ConfigItem label="timeout" value={`${(cb.config.timeoutMs / 1000).toFixed(0)}s`} />
+        <ConfigItem label="таймаут" value={`${(cb.config.timeoutMs / 1000).toFixed(0)}с`} />
         <ConfigItem label="half-open" value={`${cb.config.halfOpenLimit}`} />
         <ConfigItem
-          label="since fail"
-          value={cb.msSinceLastFailure > 0 ? `${(cb.msSinceLastFailure / 1000).toFixed(1)}s` : "—"}
+          label="с момента сбоя"
+          value={cb.msSinceLastFailure > 0 ? `${(cb.msSinceLastFailure / 1000).toFixed(1)}с` : "—"}
         />
       </div>
     </div>

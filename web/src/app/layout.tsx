@@ -14,11 +14,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Relay · Gateway Control Plane",
+  title: "Relay · Панель управления gateway",
   description:
-    "Operations dashboard for the go-api-gateway relay service. Inspect traffic, " +
-    "test routes through the gateway, monitor circuit breaker state, and explore " +
-    "Prometheus metrics in real time.",
+    "Operations-дашборд для сервиса go-api-gateway. Инспекция трафика, " +
+    "тестирование маршрутов через gateway, мониторинг состояния circuit breaker " +
+    "и просмотр Prometheus-метрик в реальном времени.",
   keywords: [
     "API Gateway",
     "Go",
@@ -40,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="ru" className="dark" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >

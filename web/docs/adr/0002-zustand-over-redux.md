@@ -1,60 +1,57 @@
-# ADR-0002: Zustand over Redux/Context for global state
+# ADR-0002: Zustand вместо Redux/Context для глобального состояния
 
-**Status:** Accepted
+**Статус:** Принято
 
 ## Summary
 
-Global dashboard state (gateway config, metrics, logs, backends, circuit
-breaker, view) lives in a single Zustand store. React Context is used only
-for the concept explainer, which is a self-contained feature.
+Глобальное состояние дашборда (конфиг gateway, метрики, логи, бэкенды,
+circuit breaker, текущий view) живёт в одном Zustand-сторе. React Context
+используется только для concept explainer-а — это самодостаточная фича.
 
-## Context
+## Контекст
 
-The dashboard has a moderately complex state shape:
+У дашборда умеренно сложная форма состояния:
 
-- Static-ish config (gateway URL, JWT, rate limit, mode)
-- High-frequency metrics (1.5s tick pushes a new snapshot)
-- Action-driven state (playground responses, simulation controls)
-- View state (current view, modal open/close)
+- Статично-конфигурационная часть (URL gateway, JWT, rate limit, mode)
+- Высокочастотные метрики (раз в 1.5с прилетает новый snapshot)
+- Action-driven состояние (ответы playground, контролы симуляции)
+- Состояние интерфейса (текущий раздел, открыта/закрыта модалка)
 
-We need a single source of truth so the sidebar's "live RPS" footer updates
-when the metrics tick fires, without prop-drilling or manual event buses.
+Нужен единый источник правды, чтобы футер «live RPS» в сайдбаре обновлялся
+при тике метрик, без prop-drilling-а и ручных event-bus-ов.
 
-## Decision
+## Решение
 
-Use Zustand. The store is defined in `src/lib/gateway/store.ts` as a single
-`create<GatewayState>()` call. Components subscribe with selector functions
-that return only the slice they care about, so a metrics tick that updates
-`metrics` doesn't re-render the sidebar (which only reads `view`).
+Используем Zustand. Стор описан в `src/lib/gateway/store.ts` одним вызовом
+`create<GatewayState>()`. Компоненты подписываются через функции-селекторы,
+которые возвращают только нужный им слайс — поэтому тик метрик, обновляющий
+`metrics`, не ре-рендерит сайдбар (он читает только `view`).
 
-## Consequences
+## Последствия
 
-**Positive**
+**Положительные**
 
-- ~50 lines of store code total — no reducers, no action types, no provider
-  tree
-- Selector-based subscriptions give us fine-grained re-render control for
-  free
-- The store is a plain object — easy to inspect from devtools, easy to test
-- Works perfectly with the `useEffect`-driven simulation tick
+- ~50 строк стора суммарно — никаких редьюсеров, action-типов, провайдер-три
+- Подписки через селекторы дают гранулярный контроль ре-рендеров бесплатно
+- Стор — обычный объект, легко инспектировать из devtools, легко тестировать
+- Отлично работает с simulation-тиком через `useEffect`
 
-**Negative**
+**Отрицательные**
 
-- No built-in devtools time-travel like Redux Toolkit offers
-- No middleware ecosystem (but we don't need one for this scale)
-- Persisting state to localStorage requires manual wiring (we do this for
-  the onboarding "completed" flag, which lives in its own useState)
+- Нет встроенного time-travel в devtools, как в Redux Toolkit
+- Нет экосистемы middleware (но на нашем масштабе и не нужно)
+- Сохранение состояния в localStorage требует ручной проводки (мы делаем
+  это для флага «onboarding completed», который живёт в собственном useState)
 
-## Alternatives considered
+## Рассмотренные альтернативы
 
-- **Redux Toolkit** — the gold standard for large apps, but adds
-  `configureStore`, `createSlice`, `useSelector`, `useDispatch` boilerplate
-  that's overkill for ~10 state fields.
-- **React Context + useReducer** — works but causes re-render storms unless
-  you split contexts, which fragments the state model.
-- **Jotai/Recoil** — atom-based models are elegant but introduce a mental
-  model shift. Zustand's "one store, many selectors" pattern is closer to
-  what most React developers already know.
+- **Redux Toolkit** — золотой стандарт для крупных приложений, но добавляет
+  бойлерплейт `configureStore`, `createSlice`, `useSelector`, `useDispatch`,
+  избыточный при ~10 полях состояния.
+- **React Context + useReducer** — работает, но вызывает ре-рендер-штормы,
+  если не разбивать контексты, что фрагментирует модель состояния.
+- **Jotai/Recoil** — atom-модели элегантны, но сдвигают mental-модель.
+  Паттерн Zustand «один стор, много селекторов» ближе к тому, что уже знают
+  большинство React-разработчиков.
 
-Zustand hits the sweet spot: Redux's single-store mental model without the
-ceremony.
+Zustand попадает в точку: mental-модель единого стора из Redux без церемоний.

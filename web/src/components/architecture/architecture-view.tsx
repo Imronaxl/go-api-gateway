@@ -35,15 +35,15 @@ export function ArchitectureView() {
     <div className="space-y-4 p-6">
       {}
       <Panel
-        title="Middleware chain"
-        description="Order matches the handler wrapping in cmd/relay/main.go — outer to inner"
+        title="Цепочка middleware"
+        description="Порядок совпадает с обёрткой handler-а в cmd/relay/main.go — снаружи внутрь"
       >
         <div className="space-y-1 font-mono text-[11px] leading-relaxed text-muted-foreground/80">
           <p>
-            The relay service wraps a base proxy handler in a chain of middlewares
-            using functional composition. Each middleware can short-circuit the
-            request (e.g. auth returns 401, rate limit returns 429) or pass it
-            down to the next layer.
+            Сервис relay оборачивает базовый proxy-handler в цепочку middleware
+            с помощью функциональной композиции. Каждый middleware может
+            шорт-схлопнуть запрос (например, auth вернёт 401, rate limit — 429)
+            или передать управление следующему слою.
           </p>
           <p className="text-muted-foreground/60">
             <span className="text-cyan-300">chain :=</span> logging(tracing(auth(ratelimit(handler))))
@@ -53,20 +53,20 @@ export function ArchitectureView() {
 
       {}
       <Panel
-        title="Request flow"
-        description="Left column: inbound request. Right column: outbound response."
+        title="Поток запроса"
+        description="Левая колонка — входящий запрос. Правая колонка — исходящий ответ."
         bodyClassName="p-0"
       >
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr]">
           {}
           <div className="space-y-2 p-6">
-            <FlowHeader label="Inbound request" sub="client → gateway" tone="cyan" />
+            <FlowHeader label="Входящий запрос" sub="клиент → gateway" tone="cyan" />
 
             {}
             <FlowNode
               icon={Server}
-              title="Client"
-              subtitle="HTTP request"
+              title="Клиент"
+              subtitle="HTTP-запрос"
               meta={`Authorization: Bearer <jwt>`}
               tone="cyan"
             />
@@ -85,7 +85,7 @@ export function ArchitectureView() {
                     icon={Icon}
                     title={stage.name}
                     subtitle={stage.package}
-                    meta={`+${stage.overheadMs.toFixed(2)}ms overhead`}
+                    meta={`+${stage.overheadMs.toFixed(2)}мс overhead`}
                     tone={isCB ? cbTone : "emerald"}
                     badge={isCB ? cb.state : undefined}
                   />
@@ -99,9 +99,9 @@ export function ArchitectureView() {
             {}
             <FlowNode
               icon={Server}
-              title="Upstream backend"
+              title="Upstream-бэкенд"
               subtitle="http://localhost:8081 / 8082 / 8083"
-              meta="round-robin selection"
+              meta="round-robin выбор"
               tone="cyan"
             />
           </div>
@@ -111,7 +111,7 @@ export function ArchitectureView() {
             <div className="flex flex-col items-center gap-2">
               <ArrowRight className="h-6 w-6 text-cyan-300" />
               <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
-                round trip
+                раунд-трип
               </span>
               <ArrowDown className="h-6 w-6 rotate-180 text-emerald-300" />
             </div>
@@ -119,13 +119,13 @@ export function ArchitectureView() {
 
           {}
           <div className="space-y-2 p-6">
-            <FlowHeader label="Outbound response" sub="backend → client" tone="emerald" />
+            <FlowHeader label="Исходящий ответ" sub="бэкенд → клиент" tone="emerald" />
 
             <FlowNode
               icon={Server}
-              title="Upstream backend"
-              subtitle="response body + headers"
-              meta="status: 200 / 4xx / 5xx"
+              title="Upstream-бэкенд"
+              subtitle="тело ответа + заголовки"
+              meta="статус: 200 / 4xx / 5xx"
               tone="emerald"
               mirror
             />
@@ -140,8 +140,8 @@ export function ArchitectureView() {
                   <FlowNode
                     icon={Icon}
                     title={stage.name}
-                    subtitle="response passthrough"
-                    meta={stage.id === "logging" ? "logs duration" : "no-op"}
+                    subtitle="проход ответа"
+                    meta={stage.id === "logging" ? "логирует длительность" : "no-op"}
                     tone="slate"
                     mirror
                   />
@@ -154,9 +154,9 @@ export function ArchitectureView() {
 
             <FlowNode
               icon={Server}
-              title="Client"
-              subtitle="HTTP response"
-              meta="timed: total round trip"
+              title="Клиент"
+              subtitle="HTTP-ответ"
+              meta="засечено: общий раунд-трип"
               tone="emerald"
               mirror
             />
@@ -199,9 +199,9 @@ export function ArchitectureView() {
                     {stage.description}
                   </p>
                   <div className="mt-3 flex items-center gap-3 border-t border-border/60 pt-2 font-mono text-[10px] text-muted-foreground/60">
-                    <span>overhead</span>
+                    <span>накладные</span>
                     <span className="tnum text-foreground">
-                      +{stage.overheadMs.toFixed(2)}ms
+                      +{stage.overheadMs.toFixed(2)}мс
                     </span>
                   </div>
                 </div>

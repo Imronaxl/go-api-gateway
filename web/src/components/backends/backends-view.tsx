@@ -39,28 +39,28 @@ export function BackendsView() {
       {}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <PoolStat
-          label="Pool size"
+          label="Размер пула"
           value={`${backends.length}`}
-          sub={`${aliveCount} alive`}
+          sub={`${aliveCount} живых`}
           icon={Server}
           tone="cyan"
         />
         <PoolStat
-          label="Total handled"
+          label="Всего обработано"
           value={formatNumber(totalHandled)}
-          sub="since gateway start"
+          sub="с момента запуска gateway"
           icon={Activity}
           tone="emerald"
         />
         <PoolStat
-          label="Avg latency"
+          label="Средняя латентность"
           value={formatMs(avgLatency)}
-          sub="across all backends"
+          sub="по всем бэкендам"
           icon={Zap}
           tone="amber"
         />
         <PoolStat
-          label="Pool error rate"
+          label="Error rate пула"
           value={formatPercent(poolErrorRate, 2)}
           sub={metrics ? `${metrics.rateLimited} rate-limited` : undefined}
           icon={AlertTriangle}
@@ -84,7 +84,7 @@ export function BackendsView() {
                       ? "amber"
                       : "rose"
                 }
-                label={b.alive ? b.health : "disabled"}
+                label={b.alive ? b.health : "отключён"}
                 pulse={b.alive}
               />
             }
@@ -93,7 +93,7 @@ export function BackendsView() {
               {}
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
-                  <MetricLabel>Traffic share</MetricLabel>
+                  <MetricLabel>Доля трафика</MetricLabel>
                   <span className="font-mono text-xs tnum text-foreground">{b.trafficShare}%</span>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-muted">
@@ -109,18 +109,18 @@ export function BackendsView() {
 
               {}
               <div className="grid grid-cols-3 gap-2">
-                <Stat label="latency" value={formatMs(b.avgLatencyMs)} />
-                <Stat label="handled" value={formatNumber(b.requestsHandled)} />
-                <Stat label="errors" value={formatPercent(b.errorRate, 2)} />
+                <Stat label="латентность" value={formatMs(b.avgLatencyMs)} />
+                <Stat label="обработано" value={formatNumber(b.requestsHandled)} />
+                <Stat label="ошибки" value={formatPercent(b.errorRate, 2)} />
               </div>
 
               {}
               <div className="flex items-center gap-2 border-t border-border/60 pt-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
                 <span className="rounded bg-muted/40 px-1.5 py-0.5">{b.protocol}</span>
-                <span>weight {b.weight}</span>
+                <span>вес {b.weight}</span>
                 <span className="ml-auto flex items-center gap-1">
                   <Network className="h-3 w-3" />
-                  {b.alive ? "reachable" : "drained"}
+                  {b.alive ? "доступен" : "дрейнован"}
                 </span>
               </div>
 
@@ -137,7 +137,7 @@ export function BackendsView() {
                 )}
               >
                 <Power className="h-3 w-3" />
-                {b.alive ? "Drain (mark as down)" : "Enable (mark as up)"}
+                {b.alive ? "Drain (пометить как down)" : "Включить (пометить как up)"}
               </Button>
             </div>
           </Panel>
@@ -147,7 +147,7 @@ export function BackendsView() {
           <Panel className="lg:col-span-2 xl:col-span-3">
             <div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground/50">
               <Server className="h-6 w-6" />
-              <p className="font-mono text-xs">No backends registered</p>
+              <p className="font-mono text-xs">Бэкенды не зарегистрированы</p>
             </div>
           </Panel>
         )}

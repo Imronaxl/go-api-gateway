@@ -17,16 +17,20 @@ interface CheatSheetDialogProps {
 
 export function CheatSheetDialog({ open, onOpenChange }: CheatSheetDialogProps) {
   const groups = ["navigation", "actions"] as const;
+  const groupLabels: Record<string, string> = {
+    navigation: "навигация",
+    actions: "действия",
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md gap-4 border-border/60 bg-card/95">
         <DialogHeader>
-          <DialogTitle className="font-mono text-base">Keyboard shortcuts</DialogTitle>
+          <DialogTitle className="font-mono text-base">Горячие клавиши</DialogTitle>
           <DialogDescription className="text-xs">
-            The dashboard is fully navigable from the keyboard. Press{" "}
+            Дашборд полностью управляется с клавиатуры. Нажмите{" "}
             <kbd className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">?</kbd>{" "}
-            anywhere to bring this sheet back up.
+            где угодно, чтобы снова открыть эту шпаргалку.
           </DialogDescription>
         </DialogHeader>
 
@@ -34,7 +38,7 @@ export function CheatSheetDialog({ open, onOpenChange }: CheatSheetDialogProps) 
           {groups.map((group) => (
             <div key={group}>
               <h3 className="mb-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
-                {group}
+                {groupLabels[group]}
               </h3>
               <div className="space-y-1">
                 {SHORTCUTS.filter((s) => s.group === group).map((s) => (

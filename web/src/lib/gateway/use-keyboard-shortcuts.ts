@@ -72,14 +72,14 @@ export const SHORTCUTS: Array<{
   description: string;
   group: "navigation" | "actions";
 }> = [
-  { keys: ["1"], description: "Go to Overview", group: "navigation" },
-  { keys: ["2"], description: "Go to Playground", group: "navigation" },
-  { keys: ["3"], description: "Go to Metrics", group: "navigation" },
-  { keys: ["4"], description: "Go to Backends", group: "navigation" },
-  { keys: ["5"], description: "Go to Logs", group: "navigation" },
-  { keys: ["6"], description: "Go to Architecture", group: "navigation" },
-  { keys: ["⌘", "K"], description: "Open command palette", group: "actions" },
-  { keys: ["?"], description: "Show keyboard shortcuts", group: "actions" },
-  { keys: ["R"], description: "Re-probe the gateway", group: "actions" },
-  { keys: ["Esc"], description: "Close any dialog", group: "actions" },
+  { keys: ["1"], description: "Перейти в Обзор", group: "navigation" },
+  { keys: ["2"], description: "Перейти в Песочницу", group: "navigation" },
+  { keys: ["3"], description: "Перейти в Метрики", group: "navigation" },
+  { keys: ["4"], description: "Перейти в Бэкенды", group: "navigation" },
+  { keys: ["5"], description: "Перейти в Логи", group: "navigation" },
+  { keys: ["6"], description: "Перейти в Архитектуру", group: "navigation" },
+  { keys: ["⌘", "K"], description: "Открыть командную палитру", group: "actions" },
+  { keys: ["?"], description: "Показать горячие клавиши", group: "actions" },
+  { keys: ["R"], description: "Перепроверить gateway", group: "actions" },
+  { keys: ["Esc"], description: "Закрыть любой диалог", group: "actions" },
 ];
