@@ -75,7 +75,9 @@ func (rp *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func CopyResponse(w http.ResponseWriter, resp *http.Response) {
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	for k, vv := range resp.Header {
 		for _, v := range vv {
@@ -83,5 +85,7 @@ func CopyResponse(w http.ResponseWriter, resp *http.Response) {
 		}
 	}
 	w.WriteHeader(resp.StatusCode)
-	io.Copy(w, resp.Body)
+	if _, err := io.Copy(w, resp.Body); err != nil {
+		return
+	}
 }

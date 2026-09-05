@@ -15,9 +15,9 @@ type Event struct {
 }
 
 type Publisher struct {
-	writer      *kafka.Writer
-	events      chan Event
-	dropped     atomic.Uint64
+	writer  *kafka.Writer
+	events  chan Event
+	dropped atomic.Uint64
 }
 
 type Config struct {
@@ -52,9 +52,11 @@ func (p *Publisher) Publish(ctx context.Context, event Event) bool {
 func (p *Publisher) process() {
 	for event := range p.events {
 		data, _ := json.Marshal(event)
-		p.writer.WriteMessages(context.Background(),
+		if err := p.writer.WriteMessages(context.Background(),
 			kafka.Message{Value: data},
-		)
+		); err != nil {
+			p.dropped.Add(1)
+		}
 	}
 }
 
