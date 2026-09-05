@@ -12,14 +12,19 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/echo", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]string{
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(map[string]string{
 			"method": r.Method,
 			"path":   r.URL.Path,
-		})
+		}); err != nil {
+			logger.Error("encode failed", "error", err)
+		}
 	})
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
+		if _, err := w.Write([]byte("ok")); err != nil {
+			logger.Error("write failed", "error", err)
+		}
 	})
 
 	logger.Info("rest backend starting", "addr", ":8081")

@@ -27,23 +27,23 @@ func NewTokenBucket(cfg Config) *TokenBucket {
 
 func (tb *TokenBucket) getLimiter(key string) *rate.Limiter {
 	tb.mu.RLock()
-	limit, ok := tb.limiters[key]
+	lim, ok := tb.limiters[key]
 	tb.mu.RUnlock()
 
 	if ok {
-		return limit
+		return lim
 	}
 
 	tb.mu.Lock()
 	defer tb.mu.Unlock()
 
-	if limit, ok := tb.limiters[key]; ok {
-		return limit
+	if existing, found := tb.limiters[key]; found {
+		return existing
 	}
 
-	limit = rate.NewLimiter(rate.Limit(tb.cfg.Rate), tb.cfg.Burst)
-	tb.limiters[key] = limit
-	return limit
+	lim = rate.NewLimiter(rate.Limit(tb.cfg.Rate), tb.cfg.Burst)
+	tb.limiters[key] = lim
+	return lim
 }
 
 func (tb *TokenBucket) Middleware(next http.Handler) http.Handler {
