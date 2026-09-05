@@ -1,9 +1,0 @@
-*.ts linguist-vendors=true
-*.tsx linguist-vendors=true
-
-*.js linguist-vendors=true
-*.jsx linguist-vendors=true
-
-*.css linguist-vendors=true
-*.scss linguist-vendors=true
-*.less linguist-vendors=true
