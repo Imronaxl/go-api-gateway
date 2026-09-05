@@ -1,5 +1,8 @@
 # go-api-gateway
 
+[![Backend](https://github.com/Imronaxl/go-api-gateway/actions/workflows/backend.yml/badge.svg)](https://github.com/Imronaxl/go-api-gateway/actions/workflows/backend.yml)
+[![Frontend](https://github.com/Imronaxl/go-api-gateway/actions/workflows/frontend.yml/badge.svg)](https://github.com/Imronaxl/go-api-gateway/actions/workflows/frontend.yml)
+
 Go API Gateway / relay service для микросервисной архитектуры, плюс
 operations-дашборд на Next.js для управления им.
 
@@ -350,6 +353,28 @@ cd web && bun run lint
 # Просмотр метрик
 curl http://localhost:9090/metrics
 ```
+
+## CI/CD
+
+Проект использует GitHub Actions для автоматической проверки каждого pull
+request и push в `main`.
+
+### Backend ([.github/workflows/backend.yml](./.github/workflows/backend.yml))
+
+- **Build** — компиляция `cmd/relay`, `demo-backends/rest`, `demo-backends/grpc`
+- **Test** — `go test -race -coverprofile=coverage.out ./...` (с race detector и покрытием)
+- **Lint** — `golangci-lint` с конфигом из `.golangci.yml` (govet, staticcheck, errcheck, gosimple, unused, gofmt, goimports)
+- **Vet** — `go vet ./...`
+- **Format check** — `gofmt -l .` (падает, если есть неотформатированные файлы)
+
+### Frontend ([.github/workflows/frontend.yml](./.github/workflows/frontend.yml))
+
+- **Lint** — `bun run lint` (ESLint)
+- **Test** — `bun test` (61 unit-тест)
+- **Build** — `bun run build` (production-сборка Next.js)
+
+Workflow запускаются только при изменениях в соответствующих частях проекта
+(path filters), чтобы не тратить минуты на ненужные запуски.
 
 ## Лицензия
 
