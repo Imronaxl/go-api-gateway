@@ -1,8 +1,6 @@
 module github.com/relay-gw/relay
 
-go 1.23.0
-
-toolchain go1.24.4
+go 1.25.0
 
 require (
 	github.com/prometheus/client_golang v1.19.0
@@ -11,7 +9,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.24.0
 	go.opentelemetry.io/otel/sdk v1.24.0
 	go.opentelemetry.io/otel/trace v1.24.0
-	golang.org/x/time v0.5.0
+	golang.org/x/time v0.15.0
 	google.golang.org/grpc v1.62.0
 )
 
