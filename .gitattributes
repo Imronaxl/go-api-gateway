@@ -1,9 +1,7 @@
-*.ts linguist-documentation=true
-*.tsx linguist-documentation=true
-
-*.js linguist-documentation=true
-*.jsx linguist-documentation=true
-
-*.css linguist-documentation=true
-*.scss linguist-documentation=true
-*.less linguist-documentation=true
+**/*.ts linguist-documentation=true
+**/*.tsx linguist-documentation=true
+**/*.js linguist-documentation=true
+**/*.jsx linguist-documentation=true
+**/*.css linguist-documentation=true
+**/*.scss linguist-documentation=true
+**/*.less linguist-documentation=true
