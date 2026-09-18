@@ -266,9 +266,6 @@ circuit breaker в открытое состояние. Бейдж статус�
   breaker, rate limiting, JWT, load balancing, tracing, middleware chain).
 - **61 unit-тест** (`bun test`) — форматоры, state-machine circuit breaker,
   контракт с Go-бэкендом.
-- **5 ADR** в [`web/docs/adr/`](./web/docs/adr/) — обоснование архитектурных
-  решений (Zustand vs Redux, симулятор, тёмная тема, типы зеркалят
-  Go-структуры, одностраничный SPA).
 - **TypeScript-типы зеркалят Go-структуры** — `DEFAULT_GATEWAY_CONFIG`
   соответствует константам из `cmd/relay/main.go`, тест это проверяет.
 
