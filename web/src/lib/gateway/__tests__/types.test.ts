@@ -1,3 +1,4 @@
+/// <reference types="bun-types" />
 import { test, expect, describe } from "bun:test";
 import { DEFAULT_GATEWAY_CONFIG, MIDDLEWARE_CHAIN } from "../types";
 
@@ -19,20 +20,22 @@ describe("DEFAULT_GATEWAY_CONFIG", () => {
     expect(DEFAULT_GATEWAY_CONFIG.metricsUrl).toContain(":9090");
   });
 
-  test("JWT token is the example from the README", () => {
+  test("default JWT is a well-formed HS256 token", () => {
     expect(DEFAULT_GATEWAY_CONFIG.jwtToken).toContain("eyJ");
+    const [header] = DEFAULT_GATEWAY_CONFIG.jwtToken.split(".");
     expect(DEFAULT_GATEWAY_CONFIG.jwtToken.split(".")).toHaveLength(3);
+    expect(JSON.parse(atob(header.replace(/-/g, "+").replace(/_/g, "/")))).toMatchObject({ alg: "HS256" });
   });
 });
 
 describe("MIDDLEWARE_CHAIN", () => {
-  test("order matches the wrap order in main.go", () => {
+  test("order matches the chain built in internal/gateway", () => {
     const ids = MIDDLEWARE_CHAIN.map((s) => s.id);
     expect(ids).toEqual([
       "logging",
       "tracing",
-      "auth",
       "ratelimit",
+      "auth",
       "loadbalancer",
       "circuitbreaker",
     ]);

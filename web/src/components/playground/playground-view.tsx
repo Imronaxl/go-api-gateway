@@ -18,7 +18,6 @@ import { StatusBadge } from "@/components/common/status-dot";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -98,10 +97,9 @@ export function PlaygroundView() {
 
   return (
     <div className="grid h-full grid-cols-1 gap-4 p-6 lg:grid-cols-2">
-      {}
       <Panel
-        title="Запрос"
-        description="Отправляется через relay с настроенным JWT"
+        title="Request"
+        description="Sent through relay with the configured JWT"
         actions={
           <StatusBadge
             tone={config.mode === "live" ? "cyan" : "slate"}
@@ -110,7 +108,6 @@ export function PlaygroundView() {
         }
         bodyClassName="space-y-4"
       >
-        {}
         <div className="flex flex-wrap gap-1.5">
           {PRESETS.map((p) => (
             <button
@@ -124,7 +121,6 @@ export function PlaygroundView() {
           ))}
         </div>
 
-        {}
         <div className="flex gap-2">
           <Select value={method} onValueChange={(v: HttpMethod) => setMethod(v)}>
             <SelectTrigger className="h-9 w-24 shrink-0 font-mono text-xs">
@@ -146,7 +142,7 @@ export function PlaygroundView() {
               value={path}
               onChange={(e) => setPath(e.target.value)}
               className="h-9 border-0 bg-transparent px-0 font-mono text-xs shadow-none focus-visible:ring-0"
-              placeholder="/путь"
+              placeholder="/path"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSend();
               }}
@@ -162,16 +158,15 @@ export function PlaygroundView() {
             ) : (
               <Send className="h-3.5 w-3.5" />
             )}
-            Отправить
+            Send
           </Button>
         </div>
 
-        {}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <MetricLabel>Заголовки</MetricLabel>
+            <MetricLabel>Headers</MetricLabel>
             <span className="font-mono text-[10px] text-muted-foreground/50">
-              Authorization добавляется автоматически
+              Authorization is added automatically
             </span>
           </div>
           <div className="space-y-1">
@@ -189,7 +184,7 @@ export function PlaygroundView() {
                   type="button"
                   onClick={() => removeHeader(k)}
                   className="font-mono text-[10px] text-muted-foreground/50 hover:text-rose-400"
-                  aria-label={`Удалить заголовок ${k}`}
+                  aria-label={`Remove header ${k}`}
                 >
                   ×
                 </button>
@@ -199,13 +194,13 @@ export function PlaygroundView() {
               <Input
                 value={newHeaderKey}
                 onChange={(e) => setNewHeaderKey(e.target.value)}
-                placeholder="имя заголовка"
+                placeholder="header name"
                 className="h-8 font-mono text-[11px]"
               />
               <Input
                 value={newHeaderValue}
                 onChange={(e) => setNewHeaderValue(e.target.value)}
-                placeholder="значение"
+                placeholder="value"
                 className="h-8 font-mono text-[11px]"
               />
               <Button
@@ -220,10 +215,9 @@ export function PlaygroundView() {
           </div>
         </div>
 
-        {}
         {!["GET", "HEAD"].includes(method) && (
           <div className="space-y-2">
-            <MetricLabel>Тело</MetricLabel>
+            <MetricLabel>Body</MetricLabel>
             <Textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
@@ -233,10 +227,9 @@ export function PlaygroundView() {
           </div>
         )}
 
-        {}
         {responseHistory.length > 0 && (
           <div className="space-y-1.5">
-            <MetricLabel>История</MetricLabel>
+            <MetricLabel>History</MetricLabel>
             <div className="max-h-32 space-y-1 overflow-y-auto">
               {responseHistory.map((r, i) => (
                 <HistoryRow key={r.requestId} response={r} index={i} />
@@ -246,10 +239,9 @@ export function PlaygroundView() {
         )}
       </Panel>
 
-      {}
       <Panel
-        title="Ответ"
-        description="Включает per-stage timing breakdown"
+        title="Response"
+        description="Includes the per-stage timing breakdown"
         bodyClassName="p-0"
         actions={
           lastResponse ? (
@@ -263,7 +255,7 @@ export function PlaygroundView() {
         {!lastResponse ? (
           <div className="flex h-72 flex-col items-center justify-center gap-2 text-muted-foreground/50">
             <Send className="h-6 w-6" />
-            <p className="font-mono text-xs">Отправьте запрос, чтобы увидеть ответ</p>
+            <p className="font-mono text-xs">Send a request to see the response</p>
           </div>
         ) : (
           <ResponsePanel response={lastResponse} />
@@ -290,7 +282,6 @@ function ResponsePanel({ response }: { response: PlaygroundResponse }) {
 
   return (
     <div className="divide-y divide-border/60">
-      {}
       <div className="flex items-center gap-3 px-5 py-4">
         <StatusIcon
           className={cn(
@@ -332,18 +323,16 @@ function ResponsePanel({ response }: { response: PlaygroundResponse }) {
         </div>
       </div>
 
-      {}
       <Section
-        title="Время по стадиям"
+        title="Timing by stage"
         open={showTiming}
         onToggle={() => setShowTiming((v) => !v)}
       >
         <TimingWaterfall stages={response.stages} total={response.totalMs} />
       </Section>
 
-      {}
       <Section
-        title="Заголовки ответа"
+        title="Response headers"
         open={showHeaders}
         onToggle={() => setShowHeaders((v) => !v)}
       >
@@ -357,9 +346,8 @@ function ResponsePanel({ response }: { response: PlaygroundResponse }) {
         </div>
       </Section>
 
-      {}
       <Section
-        title="Тело"
+        title="Body"
         open={showBody}
         onToggle={() => setShowBody((v) => !v)}
       >
@@ -411,17 +399,13 @@ function TimingWaterfall({
   total: number;
 }) {
   const colors: Record<string, string> = {
-    logging: "bg-slate-500",
-    tracing: "bg-violet-500",
-    auth: "bg-amber-500",
     ratelimit: "bg-rose-500",
-    loadbalancer: "bg-cyan-500",
-    circuitbreaker: "bg-orange-500",
-    backend: "bg-emerald-500",
+    auth: "bg-amber-500",
+    balancer: "bg-cyan-500",
+    upstream: "bg-emerald-500",
+    client: "bg-slate-500",
   };
 
-  
-  
   const offsets = stages.reduce<{ acc: number; out: number[] }>(
     (state, s) => {
       const off = state.acc;
@@ -457,7 +441,7 @@ function TimingWaterfall({
       })}
       <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-2">
         <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
-          Всего
+          Total
         </span>
         <span className="font-mono text-xs tnum font-medium text-foreground">
           {formatMs(total)}

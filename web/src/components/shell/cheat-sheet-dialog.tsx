@@ -18,19 +18,19 @@ interface CheatSheetDialogProps {
 export function CheatSheetDialog({ open, onOpenChange }: CheatSheetDialogProps) {
   const groups = ["navigation", "actions"] as const;
   const groupLabels: Record<string, string> = {
-    navigation: "навигация",
-    actions: "действия",
+    navigation: "navigation",
+    actions: "actions",
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md gap-4 border-border/60 bg-card/95">
         <DialogHeader>
-          <DialogTitle className="font-mono text-base">Горячие клавиши</DialogTitle>
+          <DialogTitle className="font-mono text-base">Keyboard shortcuts</DialogTitle>
           <DialogDescription className="text-xs">
-            Дашборд полностью управляется с клавиатуры. Нажмите{" "}
+            Everything is reachable from the keyboard. Press{" "}
             <kbd className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">?</kbd>{" "}
-            где угодно, чтобы снова открыть эту шпаргалку.
+            anywhere to open this list again.
           </DialogDescription>
         </DialogHeader>
 

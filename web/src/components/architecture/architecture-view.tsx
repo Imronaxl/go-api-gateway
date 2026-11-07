@@ -11,7 +11,7 @@ import {
   Server,
   RotateCcw,
 } from "lucide-react";
-import { Panel, MetricLabel } from "@/components/common/panel";
+import { Panel } from "@/components/common/panel";
 import { StatusDot } from "@/components/common/status-dot";
 import { useGatewayStore } from "@/lib/gateway/store";
 import { MIDDLEWARE_CHAIN } from "@/lib/gateway/types";
@@ -33,47 +33,42 @@ export function ArchitectureView() {
 
   return (
     <div className="space-y-4 p-6">
-      {}
       <Panel
-        title="Цепочка middleware"
-        description="Порядок совпадает с обёрткой handler-а в cmd/relay/main.go — снаружи внутрь"
+        title="Middleware chain"
+        description="Outermost layer first, as composed in internal/gateway"
       >
         <div className="space-y-1 font-mono text-[11px] leading-relaxed text-muted-foreground/80">
           <p>
-            Сервис relay оборачивает базовый proxy-handler в цепочку middleware
-            с помощью функциональной композиции. Каждый middleware может
-            шорт-схлопнуть запрос (например, auth вернёт 401, rate limit — 429)
-            или передать управление следующему слою.
+            Relay wraps the proxy handler in a chain of middleware
+            built by plain function composition. Each layer can
+            short-circuit the request (rate limit answers 429, auth answers 401)
+            or pass it on to the next layer.
           </p>
           <p className="text-muted-foreground/60">
-            <span className="text-cyan-300">chain :=</span> logging(tracing(auth(ratelimit(handler))))
+            <span className="text-cyan-300">handler :=</span> metrics(logging(tracing(timing(cors(ratelimit(auth(proxy)))))))
           </p>
         </div>
       </Panel>
 
-      {}
       <Panel
-        title="Поток запроса"
-        description="Левая колонка — входящий запрос. Правая колонка — исходящий ответ."
+        title="Request flow"
+        description="Left: the request on its way in. Right: the response on its way out."
         bodyClassName="p-0"
       >
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr]">
-          {}
           <div className="space-y-2 p-6">
-            <FlowHeader label="Входящий запрос" sub="клиент → gateway" tone="cyan" />
+            <FlowHeader label="Incoming request" sub="client → gateway" tone="cyan" />
 
-            {}
             <FlowNode
               icon={Server}
-              title="Клиент"
-              subtitle="HTTP-запрос"
+              title="Client"
+              subtitle="HTTP request"
               meta={`Authorization: Bearer <jwt>`}
               tone="cyan"
             />
 
             <Connector />
 
-            {}
             {MIDDLEWARE_CHAIN.map((stage, idx) => {
               const Icon = STAGE_ICONS[stage.id] ?? Code2;
               const isCB = stage.id === "circuitbreaker";
@@ -85,7 +80,7 @@ export function ArchitectureView() {
                     icon={Icon}
                     title={stage.name}
                     subtitle={stage.package}
-                    meta={`+${stage.overheadMs.toFixed(2)}мс overhead`}
+                    meta={`+${stage.overheadMs.toFixed(2)}ms overhead`}
                     tone={isCB ? cbTone : "emerald"}
                     badge={isCB ? cb.state : undefined}
                   />
@@ -96,43 +91,39 @@ export function ArchitectureView() {
 
             <Connector />
 
-            {}
             <FlowNode
               icon={Server}
-              title="Upstream-бэкенд"
+              title="Upstream backend"
               subtitle="http://localhost:8081 / 8082 / 8083"
-              meta="round-robin выбор"
+              meta="round-robin pick"
               tone="cyan"
             />
           </div>
 
-          {}
           <div className="hidden items-center justify-center border-x border-border/60 bg-muted/20 p-4 lg:flex">
             <div className="flex flex-col items-center gap-2">
               <ArrowRight className="h-6 w-6 text-cyan-300" />
               <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
-                раунд-трип
+                round trip
               </span>
               <ArrowDown className="h-6 w-6 rotate-180 text-emerald-300" />
             </div>
           </div>
 
-          {}
           <div className="space-y-2 p-6">
-            <FlowHeader label="Исходящий ответ" sub="бэкенд → клиент" tone="emerald" />
+            <FlowHeader label="Outgoing response" sub="backend → client" tone="emerald" />
 
             <FlowNode
               icon={Server}
-              title="Upstream-бэкенд"
-              subtitle="тело ответа + заголовки"
-              meta="статус: 200 / 4xx / 5xx"
+              title="Upstream backend"
+              subtitle="response body + headers"
+              meta="status: 200 / 4xx / 5xx"
               tone="emerald"
               mirror
             />
 
             <Connector mirror />
 
-            {}
             {[...MIDDLEWARE_CHAIN].reverse().map((stage, idx) => {
               const Icon = STAGE_ICONS[stage.id] ?? Code2;
               return (
@@ -140,8 +131,16 @@ export function ArchitectureView() {
                   <FlowNode
                     icon={Icon}
                     title={stage.name}
-                    subtitle="проход ответа"
-                    meta={stage.id === "logging" ? "логирует длительность" : "no-op"}
+                    subtitle="response pass"
+                    meta={
+                      stage.id === "logging"
+                        ? "logs status and duration"
+                        : stage.id === "tracing"
+                          ? "records status on the span"
+                          : stage.id === "circuitbreaker"
+                            ? "5xx counts as a failure"
+                            : "no-op"
+                    }
                     tone="slate"
                     mirror
                   />
@@ -154,9 +153,9 @@ export function ArchitectureView() {
 
             <FlowNode
               icon={Server}
-              title="Клиент"
-              subtitle="HTTP-ответ"
-              meta="засечено: общий раунд-трип"
+              title="Client"
+              subtitle="HTTP response"
+              meta="measured: total round trip"
               tone="emerald"
               mirror
             />
@@ -164,7 +163,6 @@ export function ArchitectureView() {
         </div>
       </Panel>
 
-      {}
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {MIDDLEWARE_CHAIN.map((stage) => {
           const Icon = STAGE_ICONS[stage.id] ?? Code2;
@@ -199,9 +197,9 @@ export function ArchitectureView() {
                     {stage.description}
                   </p>
                   <div className="mt-3 flex items-center gap-3 border-t border-border/60 pt-2 font-mono text-[10px] text-muted-foreground/60">
-                    <span>накладные</span>
+                    <span>overhead</span>
                     <span className="tnum text-foreground">
-                      +{stage.overheadMs.toFixed(2)}мс
+                      +{stage.overheadMs.toFixed(2)}ms
                     </span>
                   </div>
                 </div>

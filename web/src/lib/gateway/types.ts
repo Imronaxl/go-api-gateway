@@ -17,7 +17,7 @@ export interface MiddlewareStage {
 export interface Backend {
   id: string;
   url: string;
-  protocol: "http" | "grpc";
+  protocol: "http" | "https";
   weight: number;
   alive: boolean;
   health: BackendHealth;
@@ -120,8 +120,10 @@ export interface GatewayConfig {
 
 export const DEFAULT_GATEWAY_CONFIG: GatewayConfig = {
   baseUrl: "http://localhost:8080",
+  // Signed with the docker-compose default secret (local-dev-secret-change-me).
+  // Generate your own with: go run ./cmd/tokengen -sub dashboard -ttl 0
   jwtToken:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYXNoYm9hcmQiLCJpYXQiOjE3OTQwNTg4NzJ9.eZ_SWTnx0LvWy9L1mGlo5rxSnzyGp_v2Z15N-oTY0hI",
   metricsUrl: "http://localhost:9090/metrics",
   mode: "auto",
   rateLimit: { rate: 100, burst: 50 },
@@ -134,53 +136,53 @@ export const MIDDLEWARE_CHAIN: MiddlewareStage[] = [
     name: "Logging",
     package: "internal/middleware/logging",
     description:
-      "Structured slog output. Emits method, path, and duration for every request.",
+      "One slog JSON line per request with status, bytes, duration, backend, subject and trace id.",
     enabled: true,
-    overheadMs: 0.08,
+    overheadMs: 0.02,
   },
   {
     id: "tracing",
     name: "Tracing",
     package: "internal/middleware/tracing",
     description:
-      "OpenTelemetry server span. Extracts upstream context and starts a relay-request span.",
+      "OpenTelemetry server span that continues the caller's W3C trace context and returns X-Trace-Id.",
     enabled: true,
-    overheadMs: 0.12,
-  },
-  {
-    id: "auth",
-    name: "JWT Auth",
-    package: "internal/middleware/auth",
-    description:
-      "Validates the `Authorization: Bearer <token>` header. Rejects with 401 on missing or malformed tokens.",
-    enabled: true,
-    overheadMs: 0.18,
+    overheadMs: 0.01,
   },
   {
     id: "ratelimit",
     name: "Rate Limit",
     package: "internal/middleware/ratelimit",
     description:
-      "Per-client token bucket. Returns 429 with a Retry-After header when the bucket is empty.",
+      "Token bucket per client IP. Answers 429 with Retry-After. Runs before auth so bad tokens are limited too.",
     enabled: true,
-    overheadMs: 0.05,
+    overheadMs: 0.002,
+  },
+  {
+    id: "auth",
+    name: "JWT Auth",
+    package: "internal/middleware/auth",
+    description:
+      "Verifies the HS256 signature, exp and nbf of the bearer token. Rejects alg=none and anything not HS256 with 401.",
+    enabled: true,
+    overheadMs: 0.02,
   },
   {
     id: "loadbalancer",
     name: "Load Balancer",
     package: "internal/proxy",
     description:
-      "Round-robin selection across healthy backends. Skips backends whose Alive flag is false.",
+      "Round-robin over backends that passed their last health check and whose breaker admits the request.",
     enabled: true,
-    overheadMs: 0.03,
+    overheadMs: 0.001,
   },
   {
     id: "circuitbreaker",
     name: "Circuit Breaker",
-    package: "internal/middleware/circuitbreaker",
+    package: "internal/circuitbreaker",
     description:
-      "Tracks per-backend failures. Opens after MaxFailures, half-opens after Timeout, closes after HalfOpenLimit successes.",
+      "One breaker per backend. Opens after MaxFailures consecutive errors, half-opens after the timeout, closes after successful probes.",
     enabled: true,
-    overheadMs: 0.04,
+    overheadMs: 0.001,
   },
 ];

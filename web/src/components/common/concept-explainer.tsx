@@ -45,7 +45,7 @@ const CONCEPTS: Record<ConceptId, Concept> = {
       },
       {
         heading: "In this gateway",
-        body: "Configured with MaxFailures=5, Timeout=30s, HalfOpenLimit=3. So after 5 consecutive failures the breaker opens for 30 seconds, then allows 3 probe requests. The implementation lives in internal/middleware/circuitbreaker and uses a sync.RWMutex for state transitions.",
+        body: "Every backend has its own breaker (internal/circuitbreaker), so one failing instance does not take the others out of rotation. Transport errors and 5xx responses count as failures. Defaults: 5 consecutive failures open the breaker for 30 seconds, then 3 probe requests decide whether it closes. State changes are exported as the relay_circuit_breaker_state metric.",
       },
       {
         heading: "Worth knowing",
@@ -70,7 +70,7 @@ const CONCEPTS: Record<ConceptId, Concept> = {
       },
       {
         heading: "In this gateway",
-        body: "Configured with rate=100 tokens/sec, burst=50. Per-client (keyed by RemoteAddr). The limiter is created lazily per client and stored in a map guarded by a sync.RWMutex. Implemented in internal/middleware/ratelimit using golang.org/x/time/rate.",
+        body: "One token bucket per client IP (100 tokens/sec, burst 50 by default), built on golang.org/x/time/rate. The port is stripped from RemoteAddr, X-Forwarded-For is only trusted when enabled, and idle buckets are evicted. Rejections return 429 with a Retry-After computed from the bucket. Rate limiting runs before auth so floods of invalid tokens are limited too.",
       },
       {
         heading: "Other algorithms",
@@ -95,7 +95,7 @@ const CONCEPTS: Record<ConceptId, Concept> = {
       },
       {
         heading: "In this gateway",
-        body: "The middleware reads the Authorization header, expects the 'Bearer <token>' format, and currently treats any non-empty token as valid. A real implementation would call jwt.Parse with the configured SecretKey and reject expired or malformed tokens. Configured via RELAY_AUTH_SECRET env var.",
+        body: "internal/middleware/auth verifies HS256 signatures with crypto/hmac (constant-time compare), rejects any other alg including 'none', and checks exp and nbf with a small leeway. The subject is forwarded to upstreams in X-Auth-Subject; a value sent by the client is dropped. The secret comes from RELAY_JWT_SECRET.",
       },
       {
         heading: "Trade-offs",
@@ -120,7 +120,7 @@ const CONCEPTS: Record<ConceptId, Concept> = {
       },
       {
         heading: "In this gateway",
-        body: "Implemented in internal/proxy/proxy.go. The LoadBalancer holds a list of Backend structs and an atomic.Uint32 counter. RoundRobinStrategy increments the counter atomically and indexes into the pool. Selection happens before the request is dispatched, so the breaker and rate limiter can short-circuit earlier.",
+        body: "internal/proxy keeps an atomic counter and walks the pool from it, skipping backends that failed their last health check or whose breaker is open. Active health checks hit /health every 5 seconds. Each backend has its own httputil.ReverseProxy sharing one tuned transport.",
       },
       {
         heading: "Other strategies",
@@ -145,7 +145,7 @@ const CONCEPTS: Record<ConceptId, Concept> = {
       },
       {
         heading: "In this gateway",
-        body: "internal/middleware/tracing uses the OpenTelemetry SDK to start a server-span for every request, extracting upstream context from incoming headers. Spans are exported via OTLP/gRPC to a collector (port 4317 in docker-compose). From the collector they can be routed to Jaeger, Tempo, or any OTLP-compatible backend.",
+        body: "internal/middleware/tracing starts a server span per request and continues the caller's W3C trace context. The proxy injects the span context into upstream requests, and the trace ID is returned in X-Trace-Id and written to the request log. Spans are exported over OTLP/gRPC when OTEL_EXPORTER_OTLP_ENDPOINT is set; docker-compose sends them to Jaeger.",
       },
       {
         heading: "Why it matters",
@@ -166,11 +166,11 @@ const CONCEPTS: Record<ConceptId, Concept> = {
       },
       {
         heading: "Order matters",
-        body: "In this gateway the order is logging → tracing → auth → ratelimit → handler. Logging wraps everything so it sees the total duration. Tracing needs to start a span before any work happens. Auth runs before rate limit so unauthenticated requests are rejected cheaply. Rate limit is the last gate before the request hits the proxy.",
+        body: "Here the order is metrics → logging → tracing → timing → CORS → rate limit → auth → proxy. Metrics and logging wrap everything so they see the final status and total duration. CORS answers preflight requests before auth. The rate limiter runs before JWT verification so that requests with bad tokens still count against the client's budget.",
       },
       {
         heading: "In this gateway",
-        body: "Implemented in cmd/relay/main.go with a manual composition: logging(tracing(auth(ratelimit(handler)))). Each middleware lives in its own package under internal/middleware and exports a constructor that takes its config and returns the wrapper function.",
+        body: "The chain is composed in internal/gateway. Each middleware lives in its own package and shares a single response-writer wrapper (internal/httpx) that records the status code and lets the timing layer add the Server-Timing header right before headers are sent.",
       },
       {
         heading: "Alternatives",

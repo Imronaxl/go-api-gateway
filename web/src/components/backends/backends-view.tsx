@@ -10,8 +10,7 @@ import {
 } from "lucide-react";
 import { useGatewayStore } from "@/lib/gateway/store";
 import { Panel, MetricLabel, MetricValue } from "@/components/common/panel";
-import { StatusBadge, StatusDot } from "@/components/common/status-dot";
-import { Sparkline } from "@/components/common/sparkline";
+import { StatusBadge } from "@/components/common/status-dot";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -24,6 +23,7 @@ export function BackendsView() {
   const backends = useGatewayStore((s) => s.backends);
   const metrics = useGatewayStore((s) => s.metrics);
   const toggleBackend = useGatewayStore((s) => s.toggleBackend);
+  const live = useGatewayStore((s) => s.effectiveMode === "live");
 
   const aliveCount = backends.filter((b) => b.alive).length;
   const totalHandled = backends.reduce((s, b) => s + b.requestsHandled, 0);
@@ -36,31 +36,30 @@ export function BackendsView() {
 
   return (
     <div className="space-y-4 p-6">
-      {}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <PoolStat
-          label="Размер пула"
+          label="Pool size"
           value={`${backends.length}`}
-          sub={`${aliveCount} живых`}
+          sub={`${aliveCount} up`}
           icon={Server}
           tone="cyan"
         />
         <PoolStat
-          label="Всего обработано"
+          label="Total handled"
           value={formatNumber(totalHandled)}
-          sub="с момента запуска gateway"
+          sub="since the gateway started"
           icon={Activity}
           tone="emerald"
         />
         <PoolStat
-          label="Средняя латентность"
+          label="Average latency"
           value={formatMs(avgLatency)}
-          sub="по всем бэкендам"
+          sub="across all backends"
           icon={Zap}
           tone="amber"
         />
         <PoolStat
-          label="Error rate пула"
+          label="Pool error rate"
           value={formatPercent(poolErrorRate, 2)}
           sub={metrics ? `${metrics.rateLimited} rate-limited` : undefined}
           icon={AlertTriangle}
@@ -68,7 +67,6 @@ export function BackendsView() {
         />
       </div>
 
-      {}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
         {backends.map((b) => (
           <Panel
@@ -84,16 +82,15 @@ export function BackendsView() {
                       ? "amber"
                       : "rose"
                 }
-                label={b.alive ? b.health : "отключён"}
+                label={live || b.alive ? b.health : "drained"}
                 pulse={b.alive}
               />
             }
           >
             <div className="space-y-4">
-              {}
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
-                  <MetricLabel>Доля трафика</MetricLabel>
+                  <MetricLabel>Traffic share</MetricLabel>
                   <span className="font-mono text-xs tnum text-foreground">{b.trafficShare}%</span>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-muted">
@@ -107,38 +104,38 @@ export function BackendsView() {
                 </div>
               </div>
 
-              {}
               <div className="grid grid-cols-3 gap-2">
-                <Stat label="латентность" value={formatMs(b.avgLatencyMs)} />
-                <Stat label="обработано" value={formatNumber(b.requestsHandled)} />
-                <Stat label="ошибки" value={formatPercent(b.errorRate, 2)} />
+                <Stat label="latency" value={formatMs(b.avgLatencyMs)} />
+                <Stat label="handled" value={formatNumber(b.requestsHandled)} />
+                <Stat label="errors" value={formatPercent(b.errorRate, 2)} />
               </div>
 
-              {}
               <div className="flex items-center gap-2 border-t border-border/60 pt-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
                 <span className="rounded bg-muted/40 px-1.5 py-0.5">{b.protocol}</span>
-                <span>вес {b.weight}</span>
+                <span>weight {b.weight}</span>
                 <span className="ml-auto flex items-center gap-1">
                   <Network className="h-3 w-3" />
-                  {b.alive ? "доступен" : "дрейнован"}
+                  {b.alive ? "in rotation" : live ? "out of rotation" : "drained"}
                 </span>
               </div>
 
-              {}
-              <Button
-                variant={b.alive ? "outline" : "default"}
-                size="sm"
-                onClick={() => toggleBackend(b.id)}
-                className={cn(
-                  "w-full gap-2 font-mono text-xs",
-                  b.alive
-                    ? "border-rose-500/40 text-rose-300 hover:bg-rose-500/10"
-                    : "bg-emerald-500/90 text-slate-950 hover:bg-emerald-400",
-                )}
-              >
-                <Power className="h-3 w-3" />
-                {b.alive ? "Drain (пометить как down)" : "Включить (пометить как up)"}
-              </Button>
+              {/* Draining is a simulator control; the live gateway decides from health checks. */}
+              {!live && (
+                <Button
+                  variant={b.alive ? "outline" : "default"}
+                  size="sm"
+                  onClick={() => toggleBackend(b.id)}
+                  className={cn(
+                    "w-full gap-2 font-mono text-xs",
+                    b.alive
+                      ? "border-rose-500/40 text-rose-300 hover:bg-rose-500/10"
+                      : "bg-emerald-500/90 text-slate-950 hover:bg-emerald-400",
+                  )}
+                >
+                  <Power className="h-3 w-3" />
+                  {b.alive ? "Drain (mark down)" : "Enable (mark up)"}
+                </Button>
+              )}
             </div>
           </Panel>
         ))}
@@ -147,7 +144,7 @@ export function BackendsView() {
           <Panel className="lg:col-span-2 xl:col-span-3">
             <div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground/50">
               <Server className="h-6 w-6" />
-              <p className="font-mono text-xs">Бэкенды не зарегистрированы</p>
+              <p className="font-mono text-xs">No backends registered</p>
             </div>
           </Panel>
         )}

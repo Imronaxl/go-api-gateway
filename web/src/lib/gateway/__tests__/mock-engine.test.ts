@@ -1,3 +1,4 @@
+/// <reference types="bun-types" />
 
 import { test, expect, describe, beforeEach } from "bun:test";
 import {
@@ -37,9 +38,9 @@ describe("simulation engine", () => {
       const result = tick(DEFAULT_GATEWAY_CONFIG);
       expect(result.backends.length).toBe(3);
       expect(result.backends.map((b) => b.id)).toEqual([
-        "be-rest-1",
-        "be-rest-2",
-        "be-grpc-1",
+        "backend-1",
+        "backend-2",
+        "backend-3",
       ]);
     });
   });
@@ -120,9 +121,7 @@ describe("simulation engine", () => {
           path: "/health",
           headers: {},
           body: "",
-        },
-        DEFAULT_GATEWAY_CONFIG,
-      );
+        });
       expect(result.status).toBe(200);
       expect(result.body).toBe("ok");
       expect(result.servedBy).toBe("simulated");
@@ -137,9 +136,7 @@ describe("simulation engine", () => {
           path: "/echo",
           headers: {},
           body: "",
-        },
-        DEFAULT_GATEWAY_CONFIG,
-      );
+        });
       expect(result.status).toBe(200);
       const parsed = JSON.parse(result.body);
       expect(parsed.method).toBe("POST");
@@ -155,13 +152,11 @@ describe("simulation engine", () => {
           path: "/api/users",
           headers: {},
           body: "",
-        },
-        DEFAULT_GATEWAY_CONFIG,
-      );
+        });
       expect(result.status).toBe(200);
       const parsed = JSON.parse(result.body);
       expect(parsed.ok).toBe(true);
-      expect(parsed.backend).toMatch(/^be-/);
+      expect(parsed.backend).toMatch(/^backend-[1-3]$/);
     });
 
     test("unknown path returns 404", () => {
@@ -173,13 +168,11 @@ describe("simulation engine", () => {
           path: "/unknown",
           headers: {},
           body: "",
-        },
-        DEFAULT_GATEWAY_CONFIG,
-      );
+        });
       expect(result.status).toBe(404);
     });
 
-    test("always includes timing breakdown with all stages", () => {
+    test("reports the same stages as the gateway Server-Timing header", () => {
       const result = simulatePlaygroundRequest(
         {
           id: "test-5",
@@ -188,19 +181,9 @@ describe("simulation engine", () => {
           path: "/echo",
           headers: {},
           body: "",
-        },
-        DEFAULT_GATEWAY_CONFIG,
-      );
+        });
       const stageNames = result.stages.map((s) => s.stage);
-      expect(stageNames).toEqual([
-        "logging",
-        "tracing",
-        "auth",
-        "ratelimit",
-        "loadbalancer",
-        "circuitbreaker",
-        "backend",
-      ]);
+      expect(stageNames).toEqual(["ratelimit", "auth", "balancer", "upstream"]);
       expect(result.totalMs).toBeGreaterThan(0);
     });
   });

@@ -37,7 +37,6 @@ export function MetricsView() {
 
   return (
     <div className="space-y-4 p-6">
-      {}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
         <MetricKpi
           label="RPS"
@@ -68,7 +67,7 @@ export function MetricsView() {
           sparkData={history.map((h) => h.p99)}
         />
         <MetricKpi
-          label="ошибки"
+          label="errors"
           value={metrics ? formatPercent(metrics.errorRate, 2) : "—"}
           icon={AlertTriangle}
           color="oklch(0.68 0.24 16)"
@@ -83,10 +82,9 @@ export function MetricsView() {
         />
       </div>
 
-      {}
       <Panel
-        title="Тренд латентности"
-        description="p50 / p95 / p99 за последние 90 секунд"
+        title="Latency trend"
+        description="p50 / p95 / p99 over the last 90 seconds"
         actions={
           <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
             <span className="flex items-center gap-1.5">
@@ -198,11 +196,10 @@ export function MetricsView() {
         </div>
       </Panel>
 
-      {}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Panel
-          title="Гистограмма латентности"
-          description="Распределение по бакетам — последние 60 запросов"
+          title="Latency histogram"
+          description="Requests at or under each latency bound"
           bodyClassName="p-0"
         >
           <div className="h-64">
@@ -236,7 +233,7 @@ export function MetricsView() {
                       <div className="rounded-md border border-border/60 bg-popover/95 px-3 py-2 font-mono text-xs shadow-lg backdrop-blur-sm">
                         <span className="text-muted-foreground">≤ {label}ms</span>
                         <span className="ml-2 tnum text-foreground">
-                          {payload[0].value} запр.
+                          {payload[0].value} req
                         </span>
                       </div>
                     );
@@ -249,8 +246,8 @@ export function MetricsView() {
         </Panel>
 
         <Panel
-          title="Распределение статус-кодов"
-          description="HTTP-коды ответов — последние 60 запросов"
+          title="Status codes"
+          description="Response status codes"
           bodyClassName="p-0"
         >
           <div className="h-64">
@@ -286,7 +283,7 @@ export function MetricsView() {
                       <div className="rounded-md border border-border/60 bg-popover/95 px-3 py-2 font-mono text-xs shadow-lg backdrop-blur-sm">
                         <span className="text-muted-foreground">HTTP {label}</span>
                         <span className="ml-2 tnum text-foreground">
-                          {payload[0].value} запр.
+                          {payload[0].value} req
                         </span>
                       </div>
                     );
@@ -303,15 +300,14 @@ export function MetricsView() {
         </Panel>
       </div>
 
-      {}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Panel title="Всего запросов" description="С момента запуска gateway">
+        <Panel title="Total requests" description="Since the gateway started">
           <div className="flex items-end gap-2">
             <MetricValue className="text-3xl">
               {metrics ? formatNumber(metrics.totalRequests) : "—"}
             </MetricValue>
             <span className="mb-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
-              запросов
+              requests
             </span>
           </div>
           <div className="mt-3">
@@ -326,23 +322,23 @@ export function MetricsView() {
 
         <Panel
           title="Prometheus"
-          description="Live-скрапинг с /metrics"
+          description="Raw scrape of /metrics"
           bodyClassName="p-0"
           className="lg:col-span-2"
         >
           {prometheus ? (
             <pre className="max-h-64 overflow-auto p-4 font-mono text-[10px] leading-relaxed text-foreground/80">
               {prometheus.raw.slice(0, 4000)}
-              {prometheus.raw.length > 4000 && "\n... (обрезано)"}
+              {prometheus.raw.length > 4000 && "\n... (truncated)"}
             </pre>
           ) : (
             <div className="flex h-32 flex-col items-center justify-center gap-2 text-muted-foreground/50">
               <Activity className="h-5 w-5" />
               <p className="font-mono text-xs">
-                Нет live-метрик — переключитесь в режим <span className="text-cyan-300">live</span>
+                No live metrics. Switch to <span className="text-cyan-300">live</span>
               </p>
               <p className="font-mono text-[10px] text-muted-foreground/40">
-                Запустите relay на {useGatewayStore.getState().config.baseUrl} и включите Prometheus
+                Start relay at {useGatewayStore.getState().config.baseUrl} to scrape its /metrics endpoint
               </p>
             </div>
           )}

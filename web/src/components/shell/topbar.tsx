@@ -42,28 +42,28 @@ import type { GatewayMode } from "@/lib/gateway/types";
 
 const VIEW_TITLES: Record<string, { title: string; subtitle: string }> = {
   overview: {
-    title: "Обзор",
-    subtitle: "Трафик, латентность и состояние breaker в реальном времени",
+    title: "Overview",
+    subtitle: "Traffic, latency and breaker state in real time",
   },
   playground: {
-    title: "Песочница",
-    subtitle: "Отправка запросов через relay и инспекция ответа",
+    title: "Playground",
+    subtitle: "Send requests through relay and inspect the response",
   },
   metrics: {
-    title: "Метрики",
-    subtitle: "Графики в стиле Prometheus с endpoint-а метрик relay",
+    title: "Metrics",
+    subtitle: "Charts computed from the relay metrics endpoint",
   },
   backends: {
-    title: "Бэкенды",
-    subtitle: "Пул upstream, зарегистрированный в round-robin балансировщике",
+    title: "Backends",
+    subtitle: "Upstreams behind the round-robin balancer",
   },
   logs: {
-    title: "Логи",
-    subtitle: "Структурированный вывод slog из процесса relay",
+    title: "Logs",
+    subtitle: "Structured slog output",
   },
   architecture: {
-    title: "Архитектура",
-    subtitle: "Цепочка middleware — порядок совпадает с cmd/relay/main.go",
+    title: "Architecture",
+    subtitle: "Middleware chain, in the order built by internal/gateway",
   },
 };
 
@@ -93,8 +93,8 @@ export function Topbar() {
     connection === "connected"
       ? "Live"
       : connection === "degraded"
-        ? "Деград."
-        : "Симуляция";
+        ? "Degraded"
+        : "Simulated";
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border/60 bg-background/80 px-6 backdrop-blur-sm">
@@ -125,19 +125,19 @@ export function Topbar() {
           />
           <div className="flex flex-col">
             <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
-              Источник
+              Source
             </span>
             <span className="font-mono text-xs text-foreground">
-              {effectiveMode === "live" ? "Live relay" : "Симуляция"}
+              {effectiveMode === "live" ? "Live relay" : "Simulated"}
             </span>
           </div>
           {probeLatencyMs !== null && connection === "connected" && (
             <div className="ml-2 flex flex-col border-l border-border/60 pl-2">
               <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
-                Проба
+                Probe
               </span>
               <span className="font-mono text-xs tnum text-foreground">
-                {probeLatencyMs.toFixed(0)}мс
+                {probeLatencyMs.toFixed(0)}ms
               </span>
             </div>
           )}
@@ -152,7 +152,7 @@ export function Topbar() {
           size="icon"
           className="h-8 w-8 border-border/60"
           onClick={() => probe()}
-          aria-label="Перепроверить gateway"
+          aria-label="Re-check gateway"
         >
           <RefreshCw className="h-3.5 w-3.5" />
         </Button>
@@ -182,7 +182,7 @@ function ModeMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-          Источник данных
+          Data source
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {(["auto", "live", "simulated"] as GatewayMode[]).map((m) => (
@@ -219,16 +219,16 @@ function ConfigDialog() {
           variant="outline"
           size="icon"
           className="h-8 w-8 border-border/60"
-          aria-label="Настройки gateway"
+          aria-label="Gateway settings"
         >
           <Settings2 className="h-3.5 w-3.5" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg gap-4 border-border/60 bg-card/95">
         <DialogHeader>
-          <DialogTitle className="font-mono text-base">Конфигурация gateway</DialogTitle>
+          <DialogTitle className="font-mono text-base">Gateway configuration</DialogTitle>
           <DialogDescription className="text-xs">
-            Параметры подключения к сервису relay. Изменения применяются сразу.
+            Connection settings for the relay service. Changes apply immediately.
           </DialogDescription>
         </DialogHeader>
 
@@ -273,7 +273,7 @@ function ConfigDialog() {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                Источник данных
+                Data source
               </Label>
               <Select
                 value={config.mode}
@@ -359,10 +359,10 @@ function ConfigDialog() {
             }}
             className="font-mono text-xs"
           >
-            Сбросить симуляцию
+            Reset simulation
           </Button>
           <Button size="sm" onClick={() => setOpen(false)} className="font-mono text-xs">
-            Готово
+            Done
           </Button>
         </DialogFooter>
       </DialogContent>

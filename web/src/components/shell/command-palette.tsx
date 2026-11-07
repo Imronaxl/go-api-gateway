@@ -21,7 +21,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useGatewayStore, type ViewId } from "@/lib/gateway/store";
+import { useGatewayStore } from "@/lib/gateway/store";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
@@ -55,56 +55,56 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const commands: Command[] = [
     {
       id: "go-overview",
-      label: "Перейти в Обзор",
-      hint: "Живые KPI и трафик",
+      label: "Go to Overview",
+      hint: "Live KPIs and traffic",
       icon: Activity,
       group: "navigate",
       run: () => setView("overview"),
     },
     {
       id: "go-playground",
-      label: "Перейти в Песочницу",
-      hint: "Запросы через gateway",
+      label: "Go to Playground",
+      hint: "Requests through the gateway",
       icon: Send,
       group: "navigate",
       run: () => setView("playground"),
     },
     {
       id: "go-metrics",
-      label: "Перейти в Метрики",
-      hint: "Графики в стиле Prometheus",
+      label: "Go to Metrics",
+      hint: "Latency and status charts",
       icon: BarChart3,
       group: "navigate",
       run: () => setView("metrics"),
     },
     {
       id: "go-backends",
-      label: "Перейти в Бэкенды",
-      hint: "Пул upstream и здоровье",
+      label: "Go to Backends",
+      hint: "Upstream pool and health",
       icon: Server,
       group: "navigate",
       run: () => setView("backends"),
     },
     {
       id: "go-logs",
-      label: "Перейти в Логи",
-      hint: "Структурированный лог запросов",
+      label: "Go to Logs",
+      hint: "Structured request log",
       icon: ScrollText,
       group: "navigate",
       run: () => setView("logs"),
     },
     {
       id: "go-architecture",
-      label: "Перейти в Архитектуру",
-      hint: "Диаграмма middleware chain",
+      label: "Go to Architecture",
+      hint: "Middleware chain diagram",
       icon: Workflow,
       group: "navigate",
       run: () => setView("architecture"),
     },
     {
       id: "action-probe",
-      label: "Перепроверить gateway",
-      hint: "Проверить доступность relay",
+      label: "Re-check gateway",
+      hint: "Probe the relay health endpoint",
       icon: RefreshCw,
       group: "actions",
       run: () => void probe(),
@@ -113,32 +113,32 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       ? ([
           {
             id: "action-inject",
-            label: "Инжектить всплеск ошибок",
-            hint: "Сорвать circuit breaker (только сим)",
+            label: "Inject error burst",
+            hint: "Trip the circuit breaker (simulation only)",
             icon: Flame,
             group: "actions" as const,
             run: () => injectFailures(6),
           },
           {
             id: "action-cb-open",
-            label: "Принудительно открыть breaker",
-            hint: "Только сим",
+            label: "Force breaker open",
+            hint: "Simulation only",
             icon: Power,
             group: "actions" as const,
             run: () => forceCb("open"),
           },
           {
             id: "action-cb-closed",
-            label: "Закрыть breaker",
-            hint: "Только сим",
+            label: "Close breaker",
+            hint: "Simulation only",
             icon: Power,
             group: "actions" as const,
             run: () => forceCb("closed"),
           },
           {
             id: "action-reset",
-            label: "Сбросить симуляцию",
-            hint: "Очистить всё состояние симуляции",
+            label: "Reset simulation",
+            hint: "Clear all simulated state",
             icon: RotateCcw,
             group: "actions" as const,
             run: () => resetSim(),
@@ -177,16 +177,16 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
   const groups = ["navigate", "actions"] as const;
   const groupLabels: Record<string, string> = {
-    navigate: "навигация",
-    actions: "действия",
+    navigate: "navigation",
+    actions: "actions",
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl gap-0 overflow-hidden border-border/60 bg-card/95 p-0">
-        <DialogTitle className="sr-only">Командная палитра</DialogTitle>
+        <DialogTitle className="sr-only">Command palette</DialogTitle>
         <DialogDescription className="sr-only">
-          Поиск и запуск любого действия дашборда
+          Search and run any dashboard action
         </DialogDescription>
 
         <div className="flex items-center gap-3 border-b border-border/60 px-4 py-3">
@@ -201,7 +201,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               setActiveIdx(0);
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Поиск разделов и действий…"
+            placeholder="Search views and actions…"
             className="flex-1 bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
           />
           <kbd className="rounded border border-border/60 bg-muted/60 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
@@ -212,7 +212,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         <div className="max-h-80 overflow-y-auto p-2">
           {filtered.length === 0 && (
             <div className="py-8 text-center font-mono text-xs text-muted-foreground/50">
-              Команды не найдены
+              No matching commands
             </div>
           )}
           {groups.map((group) => {

@@ -1,39 +1,28 @@
-# Gateway Control Plane
+# Relay dashboard
 
-Operations-дашборд для сервиса [`go-api-gateway`](../README.md) — фронтенд
-на Next.js 16 + TypeScript + Tailwind CSS 4 + shadcn/ui.
-
-Полная документация, скриншоты и описание разделов — в основном
-[README репозитория](../README.md#web-интерфейс-gateway-control-plane).
-
-## Быстрый старт
+Next.js dashboard for the [Relay gateway](../README.md).
 
 ```bash
 bun install
-bun run dev       # http://localhost:3000
-bun run lint      # ESLint
-bun test          # 61 unit-тест
+bun run dev     # http://localhost:3000
+bun test
+bun run lint
+bun run build
 ```
 
-Бэкенд не требуется — дашборд поставляется со встроенным симулятором,
-который воспроизводит поведение Go-middleware (token bucket, circuit
-breaker, round-robin). Переключитесь в режим `live` в верхней панели для
-работы с реальным relay.
+In `auto` mode (the default) it probes `http://localhost:8080/healthz` and
+switches to live data when the gateway is up:
 
-## Структура
+- KPIs and charts are computed from consecutive scrapes of `:9090/metrics`
+  (`src/lib/gateway/live.ts`).
+- Backend health and breaker states come from `/_relay/status`.
+- The playground sends real requests and draws the timing waterfall from the
+  `Server-Timing` header.
 
-```
-web/
-├── docs/adr/        # 5 Architecture Decision Records
-├── screenshots/     # 12 скриншотов интерфейса
-└── src/
-    ├── app/         # layout, page, globals.css
-    ├── lib/gateway/ # types, client, mock-engine, store, format, тесты
-    └── components/  # shell, overview, playground, metrics, backends, logs, architecture, common, ui
-```
+When the gateway is not reachable, `src/lib/gateway/mock-engine.ts` simulates
+traffic, backends and a circuit breaker so the UI can be explored on its own.
 
-## Документация
-
-- [Основной README](../README.md) — описание всего проекта (backend + frontend)
-- [ADR](./docs/adr/README.md) — 5 документов с обоснованием архитектурных решений
-- [Скриншоты](./screenshots/) — 12 аннотированных скриншотов
+The gateway must allow the dashboard's origin: `RELAY_CORS_ORIGINS=http://localhost:3000`
+(set in `deploy/docker-compose.yml`). The default token in
+`src/lib/gateway/types.ts` is signed with the compose development secret;
+change it in the settings dialog or generate one with `go run ./cmd/tokengen`.

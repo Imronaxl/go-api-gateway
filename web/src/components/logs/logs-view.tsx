@@ -11,7 +11,7 @@ import {
   ScrollText,
 } from "lucide-react";
 import { useGatewayStore } from "@/lib/gateway/store";
-import { Panel, MetricLabel } from "@/components/common/panel";
+import { Panel } from "@/components/common/panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -29,6 +29,7 @@ const LEVELS: LogLevel[] = ["debug", "info", "warn", "error"];
 
 export function LogsView() {
   const logs = useGatewayStore((s) => s.logs);
+  const live = useGatewayStore((s) => s.effectiveMode === "live");
   const resetSim = useGatewayStore((s) => s.resetSim);
 
   const [levelFilter, setLevelFilter] = useState<LogLevel | "all">("all");
@@ -81,12 +82,11 @@ export function LogsView() {
 
   return (
     <div className="flex h-full flex-col gap-3 p-6">
-      {}
       <Panel bodyClassName="p-3">
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
             <Filter className="h-3 w-3" />
-            Фильтры
+            Filters
           </div>
           <Select
             value={levelFilter}
@@ -96,7 +96,7 @@ export function LogsView() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all" className="font-mono text-xs">все уровни</SelectItem>
+              <SelectItem value="all" className="font-mono text-xs">all levels</SelectItem>
               {LEVELS.map((l) => (
                 <SelectItem key={l} value={l} className="font-mono text-xs">
                   {l}
@@ -110,7 +110,7 @@ export function LogsView() {
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="поиск по сообщению или полям…"
+              placeholder="search message or fields…"
               className="h-8 border-0 bg-transparent px-0 font-mono text-xs shadow-none focus-visible:ring-0"
             />
           </div>
@@ -126,7 +126,7 @@ export function LogsView() {
               )}
             >
               {paused ? <Play className="h-3 w-3" /> : <Pause className="h-3 w-3" />}
-              {paused ? "Продолжить" : "Пауза"}
+              {paused ? "Resume" : "Pause"}
             </Button>
             <Button
               variant="outline"
@@ -135,7 +135,7 @@ export function LogsView() {
               className="h-8 gap-2 font-mono text-xs"
             >
               <Download className="h-3 w-3" />
-              Экспорт
+              Export
             </Button>
             <Button
               variant="outline"
@@ -144,19 +144,18 @@ export function LogsView() {
               className="h-8 gap-2 font-mono text-xs"
             >
               <Trash2 className="h-3 w-3" />
-              Очистить
+              Clear
             </Button>
           </div>
         </div>
       </Panel>
 
-      {}
       <Panel
-        title="Поток логов"
-        description="JSON-вывод slog, новые сверху"
+        title="Log stream"
+        description="slog JSON output, newest first"
         actions={
           <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
-            <span>{filtered.length} показано</span>
+            <span>{filtered.length} shown</span>
             <span className="flex items-center gap-1">
               <span
                 className={cn(
@@ -164,7 +163,7 @@ export function LogsView() {
                   paused ? "bg-amber-400" : "bg-emerald-400 pulse-ring",
                 )}
               />
-              {paused ? "пауза" : "стримится"}
+              {paused ? "paused" : "streaming"}
             </span>
           </div>
         }
@@ -175,7 +174,11 @@ export function LogsView() {
           {filtered.length === 0 ? (
             <div className="flex h-64 flex-col items-center justify-center gap-2 text-muted-foreground/50">
               <ScrollText className="h-6 w-6" />
-              <p className="font-mono text-xs">Нет записей, соответствующих текущим фильтрам</p>
+              <p className="font-mono text-xs">
+                {live
+                  ? "In live mode relay logs to stdout. Run: docker compose logs -f relay"
+                  : "No entries match the current filters"}
+              </p>
             </div>
           ) : (
             <table className="w-full text-left font-mono text-[11px]">

@@ -1,3 +1,4 @@
+/// <reference types="bun-types" />
 
 import { test, expect, describe } from "bun:test";
 import {

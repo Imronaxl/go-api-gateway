@@ -13,7 +13,7 @@ import { fakeTraceId, shortId } from "./format";
 
 const INITIAL_BACKENDS: Backend[] = [
   {
-    id: "be-rest-1",
+    id: "backend-1",
     url: "http://localhost:8081",
     protocol: "http",
     weight: 1,
@@ -25,7 +25,7 @@ const INITIAL_BACKENDS: Backend[] = [
     trafficShare: 33,
   },
   {
-    id: "be-rest-2",
+    id: "backend-2",
     url: "http://localhost:8082",
     protocol: "http",
     weight: 1,
@@ -37,9 +37,9 @@ const INITIAL_BACKENDS: Backend[] = [
     trafficShare: 33,
   },
   {
-    id: "be-grpc-1",
+    id: "backend-3",
     url: "http://localhost:8083",
-    protocol: "grpc",
+    protocol: "http",
     weight: 1,
     alive: true,
     health: "healthy",
@@ -179,7 +179,7 @@ function sampleRequest(now: number, cfg: GatewayConfig): RecentRequest | null {
   const roll = Math.random();
   if (roll < backend.errorRate) {
     status = Math.random() < 0.5 ? 500 : 502;
-    recordFailure(now, cfg);
+    recordFailure(now);
   } else if (roll < backend.errorRate + 0.02) {
     status = Math.random() < 0.5 ? 404 : 400;
   }
@@ -219,7 +219,7 @@ function sampleRequest(now: number, cfg: GatewayConfig): RecentRequest | null {
   return req;
 }
 
-function recordFailure(now: number, _cfg: GatewayConfig) {
+function recordFailure(now: number) {
   state.cb.failures += 1;
   state.lastFailureTs = now;
   state.cb.msSinceLastFailure = 0;
@@ -242,7 +242,7 @@ function recordFailure(now: number, _cfg: GatewayConfig) {
   }
 }
 
-function recordSuccess(_now: number) {
+function recordSuccess() {
   if (state.cb.state === "half-open") {
     state.cb.successes += 1;
     if (state.cb.successes >= state.cb.config.halfOpenLimit) {
@@ -322,7 +322,7 @@ export function tick(cfg: GatewayConfig = DEFAULT_GATEWAY_CONFIG): {
       state.recent.unshift(req);
       state.totalRequests += 1;
       if (req.status < 500) {
-        recordSuccess(now);
+        recordSuccess();
       }
     }
   }
@@ -390,26 +390,20 @@ export function tick(cfg: GatewayConfig = DEFAULT_GATEWAY_CONFIG): {
   };
 }
 
-export function simulatePlaygroundRequest(
-  req: PlaygroundRequest,
-  cfg: GatewayConfig,
-): PlaygroundResponse {
+export function simulatePlaygroundRequest(req: PlaygroundRequest): PlaygroundResponse {
   const now = Date.now();
   const stages: Array<{ stage: string; ms: number }> = [];
 
-  stages.push({ stage: "logging", ms: 0.05 + Math.random() * 0.1 });
-  stages.push({ stage: "tracing", ms: 0.08 + Math.random() * 0.15 });
-  stages.push({ stage: "auth", ms: 0.12 + Math.random() * 0.2 });
-  stages.push({ stage: "ratelimit", ms: 0.03 + Math.random() * 0.06 });
+  // Stage names match the gateway's Server-Timing header.
+  stages.push({ stage: "ratelimit", ms: 0.002 + Math.random() * 0.004 });
+  stages.push({ stage: "auth", ms: 0.015 + Math.random() * 0.02 });
 
   const alive = state.backends.filter((b) => b.alive);
   const backend = alive.length > 0 ? alive[Math.floor(Math.random() * alive.length)] : null;
 
-  stages.push({ stage: "loadbalancer", ms: 0.02 + Math.random() * 0.05 });
-  stages.push({ stage: "circuitbreaker", ms: 0.02 + Math.random() * 0.05 });
+  stages.push({ stage: "balancer", ms: 0.001 + Math.random() * 0.002 });
 
   if (!backend) {
-    stages.push({ stage: "backend", ms: 0.5 });
     return {
       requestId: req.id,
       totalMs: stages.reduce((s, st) => s + st.ms, 0),
@@ -417,7 +411,7 @@ export function simulatePlaygroundRequest(
       status: 503,
       statusText: "Service Unavailable",
       headers: { "Content-Type": "text/plain" },
-      body: "no available backend",
+      body: "no healthy upstream",
       servedBy: "simulated",
     };
   }
@@ -428,7 +422,6 @@ export function simulatePlaygroundRequest(
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "X-Backend-Id": backend.id,
-    "X-Served-By": "relay-simulated",
   };
 
   if (req.path === "/health") {
@@ -459,7 +452,7 @@ export function simulatePlaygroundRequest(
     1,
     gaussian(backend.avgLatencyMs, backend.avgLatencyMs * 0.4),
   );
-  stages.push({ stage: "backend", ms: backendMs });
+  stages.push({ stage: "upstream", ms: backendMs });
 
   const totalMs = stages.reduce((s, st) => s + st.ms, 0);
 
@@ -530,7 +523,7 @@ export function toggleBackend(backendId: string) {
 export function injectFailureBurst(count = 6) {
   const now = Date.now();
   for (let i = 0; i < count; i++) {
-    recordFailure(now + i, DEFAULT_GATEWAY_CONFIG);
+    recordFailure(now + i);
   }
   state.logs.push({
     id: shortId("log_"),

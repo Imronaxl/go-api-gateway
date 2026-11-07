@@ -7,7 +7,6 @@ import { StatusBadge, StatusDot } from "@/components/common/status-dot";
 import {
   Activity,
   ArrowRight,
-  Gauge,
   Timer,
   AlertTriangle,
   Server,
@@ -19,7 +18,6 @@ import {
 } from "lucide-react";
 import {
   formatMs,
-  formatNumber,
   formatPercent,
   formatRps,
   formatTime,
@@ -44,16 +42,15 @@ export function OverviewView() {
 
   return (
     <div className="space-y-4 p-6">
-      {}
       {effectiveMode === "simulated" && (
         <Panel
-          title="Управление симуляцией"
-          description="Триггерить события gateway для исследования дашборда"
+          title="Simulation controls"
+          description="Trigger gateway events to explore the dashboard"
           bodyClassName="p-3"
         >
           <div className="flex flex-wrap items-center gap-2">
             <span className="mr-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
-              Действия
+              Actions
             </span>
             <Button
               variant="outline"
@@ -62,7 +59,7 @@ export function OverviewView() {
               className="h-7 gap-1.5 border-rose-500/40 font-mono text-[11px] text-rose-300 hover:bg-rose-500/10"
             >
               <Flame className="h-3 w-3" />
-              Инжектить всплеск ошибок
+              Inject error burst
             </Button>
             <Button
               variant="outline"
@@ -71,7 +68,7 @@ export function OverviewView() {
               className="h-7 gap-1.5 border-amber-500/40 font-mono text-[11px] text-amber-300 hover:bg-amber-500/10"
             >
               <CircuitBoard className="h-3 w-3" />
-              Открыть breaker
+              Open breaker
             </Button>
             <Button
               variant="outline"
@@ -80,7 +77,7 @@ export function OverviewView() {
               className="h-7 gap-1.5 border-amber-500/40 font-mono text-[11px] text-amber-300 hover:bg-amber-500/10"
             >
               <CircuitBoard className="h-3 w-3" />
-              Перевести в half-open
+              Move to half-open
             </Button>
             <Button
               variant="outline"
@@ -89,7 +86,7 @@ export function OverviewView() {
               className="h-7 gap-1.5 border-emerald-500/40 font-mono text-[11px] text-emerald-300 hover:bg-emerald-500/10"
             >
               <Power className="h-3 w-3" />
-              Закрыть breaker
+              Close breaker
             </Button>
             <Button
               variant="outline"
@@ -98,16 +95,15 @@ export function OverviewView() {
               className="h-7 gap-1.5 border-border/60 font-mono text-[11px] text-muted-foreground hover:bg-muted/50"
             >
               <RotateCcw className="h-3 w-3" />
-              Сбросить
+              Reset
             </Button>
           </div>
         </Panel>
       )}
 
-      {}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KpiCard
-          label="Запросов / сек"
+          label="Requests / sec"
           value={metrics ? formatRps(metrics.rps) : "—"}
           icon={Activity}
           tone="cyan"
@@ -115,7 +111,7 @@ export function OverviewView() {
           sparkColor="oklch(0.78 0.15 195)"
         />
         <KpiCard
-          label="p99 латентность"
+          label="p99 latency"
           value={metrics ? formatMs(metrics.p99) : "—"}
           icon={Timer}
           tone="emerald"
@@ -124,7 +120,7 @@ export function OverviewView() {
           sub={metrics ? `p50 ${formatMs(metrics.p50)} · p95 ${formatMs(metrics.p95)}` : undefined}
         />
         <KpiCard
-          label="Доля ошибок"
+          label="Error rate"
           value={metrics ? formatPercent(metrics.errorRate, 2) : "—"}
           icon={AlertTriangle}
           tone={metrics && metrics.errorRate > 0.05 ? "rose" : "amber"}
@@ -139,16 +135,19 @@ export function OverviewView() {
           tone={
             cb.state === "closed" ? "emerald" : cb.state === "half-open" ? "amber" : "rose"
           }
-          sub={`${cb.failures}/${cb.config.maxFailures} сбоев`}
+          sub={
+            effectiveMode === "live"
+              ? `${cb.failures} of ${backends.length} backends not closed`
+              : `${cb.failures}/${cb.config.maxFailures} failures`
+          }
         />
       </div>
 
-      {}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <Panel
-            title="Трафик"
-            description="Запросов в секунду за последние 90 секунд"
+            title="Traffic"
+            description="Requests per second over the last 90 seconds"
             actions={
               <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
                 <span className="flex items-center gap-1.5">
@@ -157,7 +156,7 @@ export function OverviewView() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-rose-400" />
-                  ошибки
+                  errors
                 </span>
               </div>
             }
@@ -174,7 +173,7 @@ export function OverviewView() {
               <InfoDot concept="circuit-breaker" />
             </span>
           }
-          description="internal/middleware/circuitbreaker"
+          description="internal/circuitbreaker"
           actions={
             <StatusBadge
               tone={
@@ -185,20 +184,22 @@ export function OverviewView() {
             />
           }
         >
-          <CircuitBreakerDetail cb={cb} />
+          <CircuitBreakerDetail
+            cb={cb}
+            perBackend={effectiveMode === "live" ? backends.length : null}
+          />
         </Panel>
       </div>
 
-      {}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Panel
           title={
             <span className="inline-flex items-center gap-1.5">
-              Цепочка middleware
+              Middleware chain
               <InfoDot concept="middleware-chain" />
             </span>
           }
-          description="Порядок совпадает с cmd/relay/main.go"
+          description="Outermost first, as built in internal/gateway"
           actions={
             <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
               {MIDDLEWARE_CHAIN.length} stages
@@ -236,14 +237,14 @@ export function OverviewView() {
         <Panel
           title={
             <span className="inline-flex items-center gap-1.5">
-              Пул бэкендов
+              Backend pool
               <InfoDot concept="load-balancing" />
             </span>
           }
-          description="Round-robin балансировщик нагрузки"
+          description="Round-robin load balancing"
           actions={
             <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
-              {backends.filter((b) => b.alive).length}/{backends.length} живых
+              {backends.filter((b) => b.alive).length}/{backends.length} up
             </span>
           }
         >
@@ -281,7 +282,7 @@ export function OverviewView() {
                 <div className="flex shrink-0 items-center gap-4">
                   <div className="text-right">
                     <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
-                      доля
+                      share
                     </div>
                     <div className="font-mono text-xs tnum text-foreground">
                       {b.trafficShare}%
@@ -289,7 +290,7 @@ export function OverviewView() {
                   </div>
                   <div className="text-right">
                     <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
-                      p50
+                      avg
                     </div>
                     <div className="font-mono text-xs tnum text-foreground">
                       {formatMs(b.avgLatencyMs)}
@@ -313,10 +314,9 @@ export function OverviewView() {
         </Panel>
       </div>
 
-      {}
       <Panel
-        title="Недавние запросы"
-        description="Последние 30 запросов, прошедших через gateway"
+        title="Recent requests"
+        description="The last 30 requests through the gateway"
         actions={
           <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
             <Zap className="h-3 w-3 text-cyan-300" />
@@ -329,12 +329,12 @@ export function OverviewView() {
           <table className="w-full text-left">
             <thead className="border-b border-border/60 bg-muted/30">
               <tr>
-                <Th>время</Th>
-                <Th>метод</Th>
-                <Th>путь</Th>
-                <Th>статус</Th>
-                <Th>длительность</Th>
-                <Th>бэкенд</Th>
+                <Th>time</Th>
+                <Th>method</Th>
+                <Th>path</Th>
+                <Th>status</Th>
+                <Th>duration</Th>
+                <Th>backend</Th>
                 <Th>trace</Th>
               </tr>
             </thead>
@@ -342,7 +342,7 @@ export function OverviewView() {
               {recent.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center font-mono text-xs text-muted-foreground/50">
-                    трафика пока нет — ожидание первого запроса…
+                    no traffic yet, waiting for the first request…
                   </td>
                 </tr>
               )}
@@ -437,15 +437,19 @@ function KpiCard({ label, value, icon: Icon, tone, sparkData, sparkColor, sub }:
 
 function CircuitBreakerDetail({
   cb,
+  perBackend,
 }: {
   cb: { state: string; failures: number; successes: number; msSinceLastFailure: number; config: { maxFailures: number; timeoutMs: number; halfOpenLimit: number } };
+  // In live mode every backend has its own breaker; the panel then shows the
+  // worst state and how many backends are not closed.
+  perBackend: number | null;
 }) {
+  const limit = perBackend ?? cb.config.maxFailures;
   const tone =
     cb.state === "closed" ? "emerald" : cb.state === "half-open" ? "amber" : "rose";
 
   return (
     <div className="space-y-4">
-      {}
       <div className="flex items-center justify-center gap-2 py-2">
         <StatePill label="closed" active={cb.state === "closed"} tone="emerald" />
         <ArrowRight className="h-3 w-3 text-muted-foreground/40" />
@@ -454,12 +458,11 @@ function CircuitBreakerDetail({
         <StatePill label="half-open" active={cb.state === "half-open"} tone="amber" />
       </div>
 
-      {}
       <div>
         <div className="mb-1.5 flex items-center justify-between">
-          <MetricLabel>Сбои</MetricLabel>
+          <MetricLabel>{perBackend === null ? "Failures" : "Backends not closed"}</MetricLabel>
           <span className="font-mono text-xs tnum text-foreground">
-            {cb.failures} / {cb.config.maxFailures}
+            {cb.failures} / {limit}
           </span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-muted">
@@ -469,19 +472,18 @@ function CircuitBreakerDetail({
               tone === "emerald" ? "bg-emerald-400" : tone === "amber" ? "bg-amber-400" : "bg-rose-400",
             )}
             style={{
-              width: `${Math.min(100, (cb.failures / cb.config.maxFailures) * 100)}%`,
+              width: `${limit > 0 ? Math.min(100, (cb.failures / limit) * 100) : 0}%`,
             }}
           />
         </div>
       </div>
 
-      {}
       <div className="grid grid-cols-3 gap-3 border-t border-border/60 pt-3">
-        <ConfigItem label="таймаут" value={`${(cb.config.timeoutMs / 1000).toFixed(0)}с`} />
+        <ConfigItem label="open timeout" value={`${(cb.config.timeoutMs / 1000).toFixed(0)}s`} />
         <ConfigItem label="half-open" value={`${cb.config.halfOpenLimit}`} />
         <ConfigItem
-          label="с момента сбоя"
-          value={cb.msSinceLastFailure > 0 ? `${(cb.msSinceLastFailure / 1000).toFixed(1)}с` : "—"}
+          label="since failure"
+          value={cb.msSinceLastFailure > 0 ? `${(cb.msSinceLastFailure / 1000).toFixed(1)}s` : "—"}
         />
       </div>
     </div>
