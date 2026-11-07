@@ -7,6 +7,7 @@ on:
       - "cmd/**"
       - "internal/**"
       - "demo-backends/**"
+      - "deploy/**"
       - "go.mod"
       - "go.sum"
       - ".golangci.yml"
@@ -17,98 +18,52 @@ on:
       - "cmd/**"
       - "internal/**"
       - "demo-backends/**"
+      - "deploy/**"
       - "go.mod"
       - "go.sum"
       - ".golangci.yml"
       - ".github/workflows/backend.yml"
 
 jobs:
-  build-and-test:
-    name: Build & Test
+  test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
-          cache: true
-
-      - name: Download dependencies
-        run: go mod download
-
-      - name: Verify dependencies
+          go-version-file: go.mod
+      - name: Verify modules
         run: go mod verify
-
-      - name: Build relay
-        run: go build -v ./cmd/relay
-
-      - name: Build demo backends
-        run: |
-          go build -v ./demo-backends/rest
-          go build -v ./demo-backends/grpc
-
-      - name: Run tests
+      - name: Format
+        run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
+      - name: Vet
+        run: go vet ./...
+      - name: Build
+        run: go build ./...
+      - name: Test
         run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
-
-      - name: Upload coverage
-        if: github.event_name == 'push'
-        uses: actions/upload-artifact@v4
-        with:
-          name: go-coverage
-          path: coverage.out
+      - name: Coverage summary
+        run: go tool cover -func=coverage.out | tail -1
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
-          cache: true
-
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+          go-version-file: go.mod
+      - uses: golangci/golangci-lint-action@v6
         with:
-          version: latest
-          args: --timeout=5m
+          version: v1.64.8
 
-  vet:
-    name: Vet
+  docker:
+    name: Docker image
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.24"
-          cache: true
-
-      - name: go vet
-        run: go vet ./...
-
-  fmt:
-    name: Format check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.24"
-          cache: true
-
-      - name: Check gofmt
-        run: |
-          unformatted=$(gofmt -l .)
-          if [ -n "$unformatted" ]; then
-            echo "The following files are not formatted:"
-            echo "$unformatted"
-            exit 1
-          fi
+      - name: Build image
+        run: docker build -f deploy/Dockerfile -t relay:ci .
+      - name: Validate compose file
+        run: docker compose -f deploy/docker-compose.yml config -q

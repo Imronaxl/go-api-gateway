@@ -1,20 +1,16 @@
-FROM golang:1.22-alpine AS builder
-
-WORKDIR /app
+FROM golang:1.24-alpine AS build
+WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
-COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o relay ./cmd/relay
-RUN CGO_ENABLED=0 GOOS=linux go build -o rest-backend ./demo-backends/rest
-RUN CGO_ENABLED=0 GOOS=linux go build -o grpc-backend ./demo-backends/grpc
+COPY cmd ./cmd
+COPY internal ./internal
+COPY demo-backends ./demo-backends
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/relay ./cmd/relay \
+ && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/tokengen ./cmd/tokengen \
+ && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/rest-backend ./demo-backends/rest
 
-FROM gcr.io/distroless/static-debian12
-
-WORKDIR /app
-COPY --from=builder /app/relay /app/relay
-COPY --from=builder /app/rest-backend /app/rest-backend
-COPY --from=builder /app/grpc-backend /app/grpc-backend
-
-EXPOSE 8080 8081 8082 8083 9090
-
+FROM gcr.io/distroless/static-debian12:nonroot
+COPY --from=build /out/ /app/
+USER nonroot
+EXPOSE 8080 9090
 ENTRYPOINT ["/app/relay"]
