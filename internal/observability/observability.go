@@ -1,57 +1,48 @@
+// Package observability sets up OpenTelemetry tracing.
 package observability
 
 import (
 	"context"
 	"fmt"
-	"net/http"
+	"os"
 
-	prom "github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 )
 
-func InitOTEL(ctx context.Context, serviceName string) (func(context.Context) error, error) {
-	res, err := resource.New(ctx,
-		resource.WithAttributes(semconv.ServiceName(serviceName)),
-	)
+// InitTracing installs the W3C trace-context propagator and, when
+// OTEL_EXPORTER_OTLP_ENDPOINT is set, a tracer provider that exports spans
+// over OTLP/gRPC. Without an endpoint spans are still created (so trace IDs
+// propagate to upstreams and logs) but nothing is exported.
+func InitTracing(ctx context.Context, serviceName string) (shutdown func(context.Context) error, exporting bool, err error) {
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{}, propagation.Baggage{},
+	))
+
+	res, err := resource.Merge(resource.Default(), resource.NewWithAttributes(
+		semconv.SchemaURL, semconv.ServiceName(serviceName),
+	))
 	if err != nil {
-		return nil, fmt.Errorf("create resource: %w", err)
+		return nil, false, fmt.Errorf("build resource: %w", err)
 	}
 
-	exporter, err := otlptracegrpc.New(ctx,
-		otlptracegrpc.WithInsecure(),
-		otlptracegrpc.WithEndpoint("localhost:4317"),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("create exporter: %w", err)
-	}
-
-	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithResource(res),
-		sdktrace.WithBatcher(exporter),
-	)
-	otel.SetTracerProvider(tp)
-
-	return tp.Shutdown, nil
-}
-
-func StartMetricsServer(addr string) *http.Server {
-	mux := http.NewServeMux()
-	mux.Handle("/metrics", prom.Handler())
-
-	server := &http.Server{
-		Addr:    addr,
-		Handler: mux,
-	}
-
-	go func() {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			panic(fmt.Sprintf("metrics server: %v", err))
+	opts := []sdktrace.TracerProviderOption{sdktrace.WithResource(res)}
+	if os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT") != "" {
+		// The exporter reads the endpoint and TLS settings from the standard
+		// OTEL_EXPORTER_OTLP_* variables.
+		exp, err := otlptracegrpc.New(ctx)
+		if err != nil {
+			return nil, false, fmt.Errorf("create OTLP exporter: %w", err)
 		}
-	}()
+		opts = append(opts, sdktrace.WithBatcher(exp))
+		exporting = true
+	}
 
-	return server
+	tp := sdktrace.NewTracerProvider(opts...)
+	otel.SetTracerProvider(tp)
+	return tp.Shutdown, exporting, nil
 }

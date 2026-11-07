@@ -1,3 +1,4 @@
+// Command relay runs the API gateway.
 package main
 
 import (
@@ -11,168 +12,109 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/relay-gw/relay/internal/middleware/auth"
-	"github.com/relay-gw/relay/internal/middleware/circuitbreaker"
-	"github.com/relay-gw/relay/internal/middleware/logging"
-	"github.com/relay-gw/relay/internal/middleware/ratelimit"
-	"github.com/relay-gw/relay/internal/middleware/tracing"
-	"github.com/relay-gw/relay/internal/observability"
-	"github.com/relay-gw/relay/internal/proxy"
+	"github.com/Imronaxl/go-api-gateway/internal/audit"
+	"github.com/Imronaxl/go-api-gateway/internal/config"
+	"github.com/Imronaxl/go-api-gateway/internal/gateway"
+	"github.com/Imronaxl/go-api-gateway/internal/metrics"
+	"github.com/Imronaxl/go-api-gateway/internal/middleware/cors"
+	"github.com/Imronaxl/go-api-gateway/internal/observability"
 )
 
 func main() {
-	if err := run(); err != nil {
-		slog.Error("relay failed", "error", err)
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	if err := run(logger); err != nil {
+		logger.Error("relay stopped with error", "error", err)
 		os.Exit(1)
 	}
 }
 
-func run() error {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	}))
-
-	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer cancel()
-
-	otelShutdown, err := observability.InitOTEL(ctx, "relay")
+func run(logger *slog.Logger) error {
+	cfg, err := config.FromEnv()
 	if err != nil {
-		return fmt.Errorf("init otel: %w", err)
-	}
-	defer func() {
-		if err := otelShutdown(ctx); err != nil {
-			logger.Error("otel shutdown failed", "error", err)
-		}
-	}()
-
-	metricsServer := observability.StartMetricsServer(":9090")
-	defer func() {
-		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer shutdownCancel()
-		if err := metricsServer.Shutdown(shutdownCtx); err != nil {
-			logger.Error("metrics server shutdown failed", "error", err)
-		}
-	}()
-
-	backends := []proxy.Backend{
-		{URL: mustParseURL("http://localhost:8081")},
-		{URL: mustParseURL("http://localhost:8083")},
+		return fmt.Errorf("config: %w", err)
 	}
 
-	lb := proxy.NewLoadBalancer(backends, proxy.RoundRobinStrategy)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
-	cb := circuitbreaker.New(circuitbreaker.Config{
-		MaxFailures:   5,
-		Timeout:       30 * time.Second,
-		HalfOpenLimit: 3,
-	})
-
-	rl := ratelimit.NewTokenBucket(ratelimit.Config{
-		Rate:  100,
-		Burst: 50,
-	})
-
-	authMiddleware := auth.NewJWTAuth(auth.Config{
-		SecretKey: getEnv("RELAY_AUTH_SECRET", "secret-key"),
-	})
-
-	httpClient := &http.Client{
-		Timeout: 30 * time.Second,
+	shutdownTracing, exporting, err := observability.InitTracing(ctx, "relay")
+	if err != nil {
+		return fmt.Errorf("tracing: %w", err)
 	}
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		backend := lb.SelectBackend()
-		if backend == nil {
-			http.Error(w, "no available backend", http.StatusServiceUnavailable)
-			return
-		}
+	var pub *audit.Publisher
+	if len(cfg.KafkaBrokers) > 0 {
+		pub = audit.NewPublisher(audit.Config{Brokers: cfg.KafkaBrokers, Topic: cfg.KafkaTopic})
+	}
 
-		if cb.State() == circuitbreaker.StateOpen {
-			http.Error(w, "service unavailable", http.StatusServiceUnavailable)
-			return
-		}
+	m := metrics.New()
+	gw, err := gateway.New(cfg, logger, m, pub)
+	if err != nil {
+		return err
+	}
 
-		// Create proxy request to backend
-		proxyURL := backend.URL + r.RequestURI
-		proxyReq, err := http.NewRequestWithContext(r.Context(), r.Method, proxyURL, nil)
-		if err != nil {
-			cb.RecordFailure()
-			http.Error(w, "backend error", http.StatusBadGateway)
-			return
-		}
+	go gw.Pool.RunHealthChecks(ctx)
+	go gw.Limiter.RunEviction(time.Minute, ctx.Done())
 
-		// Copy body if present
-		if r.Body != nil {
-			proxyReq.Body = r.Body
-			proxyReq.ContentLength = r.ContentLength
-		}
+	servers := []*http.Server{
+		{
+			Addr:              cfg.ListenAddr,
+			Handler:           gw.Handler,
+			ReadHeaderTimeout: 5 * time.Second,
+			IdleTimeout:       120 * time.Second,
+		},
+		{
+			Addr:              cfg.MetricsAddr,
+			Handler:           metricsMux(m, cfg.CORSOrigins),
+			ReadHeaderTimeout: 5 * time.Second,
+		},
+	}
 
-		// Copy headers from original request (excluding Host and Connection)
-		for k, vv := range r.Header {
-			if k != "Host" && k != "Connection" {
-				for _, v := range vv {
-					proxyReq.Header.Add(k, v)
-				}
+	errs := make(chan error, len(servers))
+	for _, srv := range servers {
+		go func(srv *http.Server) {
+			if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				errs <- fmt.Errorf("listen %s: %w", srv.Addr, err)
 			}
-		}
+		}(srv)
+	}
 
-		resp, err := httpClient.Do(proxyReq)
-		if err != nil {
-			cb.RecordFailure()
-			http.Error(w, "backend error", http.StatusBadGateway)
-			return
-		}
-
-		cb.RecordSuccess()
-		proxy.CopyResponse(w, resp)
-	})
-
-	chain := logging.Middleware(logger)(
-		tracing.Middleware()(
-			authMiddleware(
-				rl.Middleware(
-					handler,
-				),
-			),
-		),
+	logger.Info("relay started",
+		"addr", cfg.ListenAddr,
+		"metrics_addr", cfg.MetricsAddr,
+		"backends", cfg.Backends,
+		"tracing_export", exporting,
+		"audit", pub != nil,
 	)
 
-	server := &http.Server{
-		Addr:         ":8080",
-		Handler:      chain,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 30 * time.Second,
-		IdleTimeout:  60 * time.Second,
+	var runErr error
+	select {
+	case <-ctx.Done():
+		logger.Info("shutting down")
+	case runErr = <-errs:
 	}
 
-	go func() {
-		<-ctx.Done()
-		logger.Info("shutting down server")
-
-		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer shutdownCancel()
-
-		if err := server.Shutdown(shutdownCtx); err != nil {
-			logger.Error("server shutdown failed", "error", err)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	for _, srv := range servers {
+		if err := srv.Shutdown(shutdownCtx); err != nil {
+			logger.Error("server shutdown", "addr", srv.Addr, "error", err)
 		}
-	}()
-
-	logger.Info("relay starting", "addr", server.Addr)
-	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		return fmt.Errorf("server: %w", err)
 	}
-
-	logger.Info("relay stopped")
-	return nil
+	if pub != nil {
+		if err := pub.Close(); err != nil {
+			logger.Error("audit publisher close", "error", err)
+		}
+		logger.Info("audit publisher closed", "dropped_events", pub.Dropped())
+	}
+	if err := shutdownTracing(shutdownCtx); err != nil {
+		logger.Error("tracing shutdown", "error", err)
+	}
+	return runErr
 }
 
-func mustParseURL(s string) string {
-	return s
-}
-
-func getEnv(key, defaultVal string) string {
-	if val := os.Getenv(key); val != "" {
-		return val
-	}
-	return defaultVal
+func metricsMux(m *metrics.Metrics, corsOrigins []string) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle("GET /metrics", m.Handler())
+	return cors.Middleware(corsOrigins)(mux)
 }
